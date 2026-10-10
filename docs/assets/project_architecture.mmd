@@ -1,0 +1,37 @@
+flowchart LR
+    subgraph client ["用户终端"]
+        sshTerminal["SSH 终端"]
+    end
+    subgraph gateway ["NAS 入口"]
+        sshServer["SSH 服务"]
+    end
+    subgraph service ["构建与运行"]
+        nvencTool["NVENC 菜单与运行工具"]
+        dockerBuilder["Docker 隔离双构建"]
+        systemdManager["systemd 启动与恢复"]
+        mediaService["原生 mediasrv"]
+    end
+    subgraph datastore ["本机文件与状态"]
+        projectFiles["项目源码与构建材料"]
+        installedFiles["版本目录与候选库 /opt"]
+        recoveryFiles["按 boot 恢复记录 /var/lib"]
+        runtimeEnv["本工具环境文件 /run"]
+    end
+    subgraph external ["既有能力与公开来源"]
+        publicSources["固定公开源码与依赖"]
+        gpuDriver["既有 NVIDIA 驱动与 GPU"]
+    end
+    sshTerminal -->|"SSH"| sshServer
+    sshServer -->|"Bash / sudo"| nvencTool
+    nvencTool -->|"固定输入"| dockerBuilder
+    dockerBuilder -->|"保存构建与校验"| projectFiles
+    dockerBuilder -.->|"构建器下载依赖"| publicSources
+    nvencTool -->|"读取源码与材料"| projectFiles
+    nvencTool -->|"验证安装"| installedFiles
+    nvencTool -->|"保存恢复点"| recoveryFiles
+    nvencTool <-->|"管理钩子与启动校验"| systemdManager
+    nvencTool -->|"检查成功写入"| runtimeEnv
+    systemdManager -->|"读取启动环境"| runtimeEnv
+    systemdManager -->|"启动服务"| mediaService
+    mediaService -->|"加载候选库"| installedFiles
+    mediaService -.->|"mediasrv: GPU 转码"| gpuDriver

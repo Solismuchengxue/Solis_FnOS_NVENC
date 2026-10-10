@@ -2,6 +2,7 @@
 /DEVLOG.md
 /tmp/
 /artifacts/
+/builds/
 /.env
 /.env.*
 !.env.example

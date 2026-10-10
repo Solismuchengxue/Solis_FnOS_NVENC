@@ -23,16 +23,16 @@ NAS 已具备正常驱动与许可、Git、Bash、Python **3.11 或以上**、Do
 
 ## 克隆并运行
 
-已有 `source` 目录时停止，不覆盖；已有项目根目录可以保留。
+直接在 `/vol1/1000/` 下克隆，仓库根目录就是安装入口，不需要再建 `source` 子目录。以下命令只在前一步成功时继续。
 
 ```bash
-mkdir -p /vol1/1000/Solis_FnOS_NVENC
-test ! -e /vol1/1000/Solis_FnOS_NVENC/source || exit 1
-git clone https://github.com/Solismuchengxue/Solis_FnOS_NVENC.git \
-  /vol1/1000/Solis_FnOS_NVENC/source
-cd /vol1/1000/Solis_FnOS_NVENC/source
+cd /vol1/1000/ &&
+git clone https://github.com/Solismuchengxue/Solis_FnOS_NVENC.git &&
+cd /vol1/1000/Solis_FnOS_NVENC/ &&
 bash fnos-nvenc.sh
 ```
+
+已有非空 `Solis_FnOS_NVENC` 目录时，Git 会停止克隆。保留原目录及恢复材料；如果原来克隆在 `source/`，继续从原源码入口使用，不要覆盖或自动搬迁。下面的更新路径适用于新的直接克隆布局。
 
 菜单只在交互终端运行：
 
@@ -53,7 +53,9 @@ Solis fnOS NVENC  |  v0.1.0
 
 先选 **1** 检查环境，再选 **2** 安装。首次安装从公开来源下载固定源码、验证签名和 SHA256，在 Docker 内独立构建两次。两个结果都必须匹配已验证候选；不匹配就停止，不修改身份合同放行。随后核对当前恢复点，安装版本目录和单库，设置启动检查，重启影视服务并核对实际加载。
 
-首次安装较慢。每轮材料保留在项目根下的 `builds/` 和 `tmp/`，不覆盖已有目录。再次安装相同版本是幂等操作。已有未知工具、改动过的文件或未完成事务时会停止并保留材料。
+首次安装较慢。项目根下的 `builds/` 保存构建材料，`tmp/` 保存当次暂存；两者被 Git 忽略，不覆盖已有目录，必要证据保全前不清理。再次安装相同版本是幂等操作。已有未知工具、改动过的文件或未完成事务时会停止并保留材料。
+
+维护者本地的 `artifacts/` 是被 Git 忽略的材料目录，公开克隆不包含；公开安装流程自行构建，不需要预先具备这个目录。只保留仍需使用的库、构建输入和恢复材料，不保存已完成试验的日志、输出或重复包。
 
 仍通过原来的飞牛影视入口播放，不增加网址、账户或端口。选择原生 **720p**，完成一次跳转并继续播放；保持播放时在菜单选 **5**，核对声音与音画同步后输入 `AUDIO_OK`。工具保存绑定原生服务的真实 GPU 子进程和实际库映射。状态页的“已加载”不代表所有影片已经验证。
 
@@ -68,7 +70,7 @@ Solis fnOS NVENC  |  v0.1.0
 在源码目录取得经核查的新版本后运行菜单，先选 **6** 暂停，再选 **3** 更新工具。新版按清单验证后原子切换普通 JSON 指针，保留上一版，不覆盖旧目录；安装失败保留半成品和旧可用版本。
 
 ```bash
-cd /vol1/1000/Solis_FnOS_NVENC/source
+cd /vol1/1000/Solis_FnOS_NVENC/ || exit 1
 git pull --ff-only
 bash fnos-nvenc.sh
 ```
@@ -92,7 +94,7 @@ sudo bash fnos-nvenc.sh deploy    # 历史临时接入，不设置开机检查
 sudo bash fnos-nvenc.sh rollback  # 恢复当次基线
 ```
 
-新动作还包括 `install`、`update-tool`、`verify`、`disable`、`uninstall-patch`、`uninstall-tool` 和 `build`。`--help` 查看参数，`--json` 用于结构化读回。已启用持久补丁时不能混用临时 `deploy`。安装后的稳定入口为 `sudo bash /opt/solis-fnos-nvenc/tool/runner.sh`。
+新动作还包括 `install`、`update-tool`、`verify`、`disable`、`uninstall-patch`、`uninstall-tool` 和 `build`。`--help` 查看参数，`--json` 用于结构化读回。已启用持久补丁时不能混用临时 `deploy`。安装后的稳定入口为 `sudo bash /opt/solis-fnos-nvenc/tool/runner.sh`；[离线短说明](docs/quick_start.md)随工具安装。
 
 ## 常见问题
 
@@ -106,4 +108,4 @@ sudo bash fnos-nvenc.sh rollback  # 恢复当次基线
 
 自有代码采用 [GPL-3.0-or-later](LICENSE)。第三方补丁保留其原声明及[来源记录](docs/source_and_evidence.md)；[固定公开构建输入](docs/build_sources.json)可核查。构建使用 `nonfree` 选项，产物不可再分发；仓库和 Release 只发布源码与说明，**不发布编译库、驱动或构建镜像**。参见 [FFmpeg 许可说明](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n8.1.1/LICENSE.md)。
 
-菜单交互参考 [KIAUH](https://github.com/dw-0/kiauh)，实现由本工程维护。开发和证据导航见 [DESIGN](DESIGN.md)及[维护说明](docs/maintenance.md)。完整原版功能对等仍 **FAIL**；本项目不是厂商官方兼容承诺。
+菜单交互参考 [KIAUH](https://github.com/dw-0/kiauh)，实现由本工程维护。开发、[Figma 架构图](DESIGN.md#项目架构图)和证据导航见 [DESIGN](DESIGN.md)及[维护说明](docs/maintenance.md)。完整原版功能对等仍 **FAIL**；本项目不是厂商官方兼容承诺。

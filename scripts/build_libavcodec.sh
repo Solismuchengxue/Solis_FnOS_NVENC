@@ -1,5 +1,5 @@
 #!/bin/bash
-# 隔离 Linux 环境中的构建核心步骤。环境启动及依赖准备尚未闭合。
+# Docker 容器内的构建核心步骤；环境启动与依赖准备由公开构建编排器负责。
 # 用法：build_libavcodec.sh <源码包目录> <补丁目录> <不存在的输出目录>
 # 不下载、不安装依赖、不接入服务；只交付候选 libavcodec。
 set -euo pipefail

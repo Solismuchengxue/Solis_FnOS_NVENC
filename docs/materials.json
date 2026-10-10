@@ -77,45 +77,9 @@
       "origin": "nvenc-stage1-ac4/evidence/build-packages.txt",
       "kind": "historical_build_packages",
       "license": "Package-version inventory; not dependency binaries"
-    },
-    {
-      "path": "scripts/wav_check.py",
-      "bytes": 3413,
-      "sha256": "8182967ea0883f049803fcf3915a2a475020515a2419876063c5b24e3deb4a64",
-      "origin": "nvenc-stage1-ac4/wav-check.py",
-      "kind": "maintained_validation_source",
-      "license": "Task-origin code; no separate redistribution license assigned"
     }
   ],
   "maintained_from": [
-    {
-      "path": "scripts/wav_check.py",
-      "origins": [
-        "nvenc-stage1-ac4/wav-check.py"
-      ],
-      "origin_sha256": "8182967ea0883f049803fcf3915a2a475020515a2419876063c5b24e3deb4a64",
-      "change": "Byte-for-byte copy; filename normalized",
-      "origin_hashes": [
-        {
-          "path": "nvenc-stage1-ac4/wav-check.py",
-          "sha256": "8182967ea0883f049803fcf3915a2a475020515a2419876063c5b24e3deb4a64"
-        }
-      ]
-    },
-    {
-      "path": "tests/test_wav_check.py",
-      "origins": [
-        "nvenc-stage1-ac4/wav-check-tests.py"
-      ],
-      "origin_sha256": "ecfb5208eead540f1e17f2e2a0cbb92b69dbed71125b26134d8295543fad41c0",
-      "change": "Import resolves scripts/wav_check.py from repository root",
-      "origin_hashes": [
-        {
-          "path": "nvenc-stage1-ac4/wav-check-tests.py",
-          "sha256": "ecfb5208eead540f1e17f2e2a0cbb92b69dbed71125b26134d8295543fad41c0"
-        }
-      ]
-    },
     {
       "path": "scripts/build_libavcodec.sh",
       "origins": [
@@ -144,19 +108,6 @@
         {
           "path": "nvenc-stage2/trial-files.sh",
           "sha256": "17231da614642b4f8ca5d854efbdd6c5c204a3184c48bce1219df6f06ec04270"
-        }
-      ]
-    },
-    {
-      "path": "scripts/rollback_runtime.sh",
-      "origins": [
-        "nvenc-stage2/rollback-runtime.sh"
-      ],
-      "change": "Explicit current unit/drop-in identities; local helper; no frozen PID or SSH wrapper",
-      "origin_hashes": [
-        {
-          "path": "nvenc-stage2/rollback-runtime.sh",
-          "sha256": "385d2054f6a47b455499acc3627492bc2d35ae114e2bf341377a756517b30641"
         }
       ]
     },
