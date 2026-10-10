@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "version": "0.1.0",
+  "base_image": "debian@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587",
+  "snapshot": "20261010T000000Z",
+  "package_list_sha256": "254308a64ba66d5b0292b62d4eab774ceefdd644c8fae5394dbb77d242593f3b",
+  "candidate_sha256": "88e48674062ee5ef71864a2619324772bc856fec78c0d4793920fa7d4c15cd57",
+  "candidate_bytes": 16516408,
+  "files": [
+    {"name": "ffmpeg-8.1.1.tar.xz", "url": "https://ffmpeg.org/releases/ffmpeg-8.1.1.tar.xz", "sha256": "b6863adde98898f42602017462871b5f6333e65aec803fdd7a6308639c52edf3", "bytes": 11709440},
+    {"name": "ffmpeg-8.1.1.tar.xz.asc", "url": "https://ffmpeg.org/releases/ffmpeg-8.1.1.tar.xz.asc", "sha256": "34e2109f97bededb42a3cb5e7b9a7bb67dd6fe4749a7bce630ec1c833caa2b37", "bytes": 520},
+    {"name": "ffmpeg-devel.asc", "url": "https://ffmpeg.org/ffmpeg-devel.asc", "sha256": "397b3becedcd5a98769967ff1ff8501ddc89f8368b8f766e4701377d7dbaabe5", "bytes": 1709},
+    {"name": "nv-codec-headers.tar.gz", "url": "https://codeload.github.com/FFmpeg/nv-codec-headers/tar.gz/1889e62e2d35ff7aa9baca2bceb14f053785e6f1", "sha256": "e30d4791fd386de8b5c9f88dec781e546ec148b8808440dd421da5f26c2700ae", "bytes": 79617}
+  ]
+}

@@ -1,0 +1,218 @@
+--- a/libavformat/ac4dec.c
++++ b/libavformat/ac4dec.c
+@@ -21,87 +21,160 @@
+ 
+ #include "libavutil/avassert.h"
+ #include "libavutil/crc.h"
++#include "libavutil/intreadwrite.h"
+ #include "avformat.h"
+ #include "demux.h"
+ #include "rawdec.h"
+ 
++/* Bounded metadata envelope only: v2.3/v2.4 revision 0, no transform flags;
++ * v2.4 footer is supported. Metadata payload is skipped, not interpreted. */
++static int ac4_id3_size(const uint8_t *h)
++{
++    int size = 0, i;
++    if ((h[3] != 3 && h[3] != 4) || h[4] ||
++        (h[5] & ~(h[3] == 4 ? 0x10 : 0)))
++        return AVERROR_INVALIDDATA;
++    for (i = 6; i < 10; i++) {
++        if (h[i] & 0x80)
++            return AVERROR_INVALIDDATA;
++        size = (size << 7) | h[i];
++    }
++    if (size > 1024 * 1024)
++        return AVERROR_INVALIDDATA;
++    return size;
++}
++
+ static int ac4_probe(const AVProbeData *p)
+ {
+     const uint8_t *buf = p->buf;
+-    int left = p->buf_size;
+-    int max_frames = 0;
++    int left = p->buf_size, frames = 0;
++    if (left >= 10 && !memcmp(buf, "ID3", 3)) {
++        int size = ac4_id3_size(buf);
++        if (size < 0)
++            return 0;
++        size += 10 + (buf[5] & 0x10 ? 10 : 0);
++        if (size > left)
++            return 0;
++        buf += size; left -= size;
++    }
++    while (left >= 4) {
++        int header = 4, size;
++        if (buf[0] != 0xAC || (buf[1] != 0x40 && buf[1] != 0x41))
++            break;
++        size = AV_RB16(buf + 2);
++        if (size == 0xffff) {
++            if (left < 7)
++                break;
++            size = AV_RB24(buf + 4); header = 7;
++        }
++        if (!size)
++            break;
++        size += header + (buf[1] == 0x41 ? 2 : 0);
++        if (left < size)
++            break;
++        frames++; left -= size; buf += size;
++    }
++    return FFMIN(AVPROBE_SCORE_MAX, frames * 7);
++}
+ 
+-    while (left > 7) {
+-        int size;
+-
+-        if (buf[0] == 0xAC &&
+-            (buf[1] == 0x40 ||
+-             buf[1] == 0x41)) {
+-            size = (buf[2] << 8) | buf[3];
+-            if (size == 0xFFFF)
+-                size = 3 + ((buf[4] << 16) | (buf[5] << 8) | buf[6]);
+-            size += 4;
+-            if (buf[1] == 0x41)
+-                size += 2;
+-            if (left < size)
+-                break;
+-            max_frames++;
+-            left -= size;
+-            buf += size;
+-        } else {
+-            break;
+-        }
+-    }
+-
+-    return FFMIN(AVPROBE_SCORE_MAX, max_frames * 7);
++static int ac4_exact(AVIOContext *pb, uint8_t *buf, int size)
++{
++    int ret = avio_read(pb, buf, size);
++    return ret == size ? 0 : ret < 0 && ret != AVERROR_EOF ? ret : AVERROR_INVALIDDATA;
+ }
+ 
+ static int ac4_read_header(AVFormatContext *s)
+ {
+     AVStream *st;
+-
++    uint8_t h[10], buf[4096], footer[10];
++    int size, ret;
++    int64_t pos = avio_tell(s->pb);
++    if ((ret = ac4_exact(s->pb, h, 3)) < 0)
++        return ret;
++    if (!memcmp(h, "ID3", 3)) {
++        if ((ret = ac4_exact(s->pb, h + 3, 7)) < 0)
++            return ret;
++        if ((size = ac4_id3_size(h)) < 0)
++            return size;
++        while (size) {
++            int chunk = FFMIN(size, sizeof(buf));
++            if ((ret = ac4_exact(s->pb, buf, chunk)) < 0)
++                return ret;
++            size -= chunk;
++        }
++        if (h[5] & 0x10) {
++            if ((ret = ac4_exact(s->pb, footer, 10)) < 0)
++                return ret;
++            if (memcmp(footer, "3DI", 3) || memcmp(h + 3, footer + 3, 7))
++                return AVERROR_INVALIDDATA;
++        }
++    } else if (avio_seek(s->pb, pos, SEEK_SET) < 0) {
++        return AVERROR_INVALIDDATA;
++    }
+     st = avformat_new_stream(s, NULL);
+     if (!st)
+         return AVERROR(ENOMEM);
+-
+     st->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+-    st->codecpar->codec_id   = AV_CODEC_ID_AC4;
+-
++    st->codecpar->codec_id = AV_CODEC_ID_AC4;
+     return 0;
+ }
+ 
+ static int ac4_read_packet(AVFormatContext *s, AVPacket *pkt)
+ {
+     AVIOContext *pb = s->pb;
+-    int64_t pos;
+-    uint16_t sync;
+-    int ret, size;
+-
+-    if (avio_feof(s->pb))
++    uint8_t h[7], trailer[2];
++    int64_t pos = avio_tell(pb);
++    int ret, size, header = 4, sync;
++    uint32_t crc;
++    ret = avio_read(pb, h, 1);
++    if (ret == AVERROR_EOF || ret == 0)
+         return AVERROR_EOF;
+-
+-    pos  = avio_tell(s->pb);
+-    sync = avio_rb16(pb);
+-    size = avio_rb16(pb);
+-    if (size == 0xffff)
+-        size = avio_rb24(pb);
+-
++    if (ret < 0)
++        return ret;
++    if ((ret = ac4_exact(pb, h + 1, 3)) < 0)
++        return ret;
++    sync = AV_RB16(h);
++    if (sync != 0xAC40 && sync != 0xAC41)
++        return AVERROR_INVALIDDATA;
++    size = AV_RB16(h + 2);
++    if (size == 0xffff) {
++        if ((ret = ac4_exact(pb, h + 4, 3)) < 0)
++            return ret;
++        size = AV_RB24(h + 4); header = 7;
++    }
++    if (!size)
++        return AVERROR_INVALIDDATA;
+     ret = av_get_packet(pb, pkt, size);
+-    pkt->pos = pos;
+-    pkt->stream_index = 0;
+-
+-    if (sync == 0xAC41)
+-        avio_skip(pb, 2);
+-
+-    return ret;
++    if (ret != size) {
++        av_packet_unref(pkt);
++        return ret < 0 && ret != AVERROR_EOF ? ret : AVERROR_INVALIDDATA;
++    }
++    if (sync == 0xAC41) {
++        if ((ret = ac4_exact(pb, trailer, 2)) < 0) {
++            av_packet_unref(pkt);
++            return ret;
++        }
++        /* ETSI TS 103 190-1 G.4.2: CRC-16/0x8005, init 0,
++         * no reflection/XOR, frame_size()+payload+CRC has zero residue.
++         * FFmpeg's big-endian CRC table keeps its register byte-swapped. */
++        crc = av_crc(av_crc_get_table(AV_CRC_16_ANSI), 0, h + 2, header - 2);
++        crc = av_crc(av_crc_get_table(AV_CRC_16_ANSI), crc, pkt->data, pkt->size);
++        crc = av_crc(av_crc_get_table(AV_CRC_16_ANSI), crc, trailer, 2);
++        if (crc) {
++            av_packet_unref(pkt);
++            return AVERROR_INVALIDDATA;
++        }
++    }
++    pkt->pos = pos; pkt->stream_index = 0;
++    return size;
+ }
+ 
+ const FFInputFormat ff_ac4_demuxer = {
+-    .p.name         = "ac4",
+-    .p.long_name    = NULL_IF_CONFIG_SMALL("raw AC-4"),
+-    .p.flags        = AVFMT_GENERIC_INDEX,
+-    .p.extensions   = "ac4",
+-    .read_probe     = ac4_probe,
+-    .read_header    = ac4_read_header,
+-    .read_packet    = ac4_read_packet,
++    .p.name = "ac4",
++    .p.long_name = NULL_IF_CONFIG_SMALL("raw AC-4"),
++    .p.flags = AVFMT_GENERIC_INDEX,
++    .p.extensions = "ac4",
++    .read_probe = ac4_probe,
++    .read_header = ac4_read_header,
++    .read_packet = ac4_read_packet,
+ };

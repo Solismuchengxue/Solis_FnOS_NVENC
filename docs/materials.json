@@ -1,0 +1,177 @@
+{
+  "ffmpeg_version": "8.1.1",
+  "headers_version": "12.1.14.0",
+  "headers_commit": "1889e62e2d35ff7aa9baca2bceb14f053785e6f1",
+  "nvenc_api": "12.1",
+  "jellyfin_patch_ref": "v8.1.1-4/debian/patches/0054-add-ac4-decoder-for-atsc-3-0.patch",
+  "ffmpeg_signer_fingerprint": "FCF986EA15E6E293A5644F10B4322F04D67658D8",
+  "files": [
+    {
+      "path": "patches/ac4_decoder.patch",
+      "bytes": 333056,
+      "sha256": "1a51adb35c14a50811487146d4215f4efab641ec4ca10ec75cc39b33310e92bd",
+      "kind": "source",
+      "license": "GPLv3+ declarations; retain upstream notices",
+      "origin": "nvenc-stage1-ac4/evidence/ac4.patch"
+    },
+    {
+      "path": "patches/ac4_parser_type.patch",
+      "bytes": 421,
+      "sha256": "7e68fc5ace33cec0ca3a120e0e8d003c49232bdd52bb61c99310ffeec97771fe",
+      "kind": "source",
+      "license": "FFmpeg-derived declaration adjustment; no separate project license assigned",
+      "origin": "nvenc-stage1-ac4/ac4-parser-type.patch"
+    },
+    {
+      "path": "artifacts/sources/ffmpeg-8.1.1.tar.xz",
+      "bytes": 11709440,
+      "sha256": "b6863adde98898f42602017462871b5f6333e65aec803fdd7a6308639c52edf3",
+      "kind": "upstream_source",
+      "license": "FFmpeg LICENSE.md and COPYING files inside source package",
+      "origin": "nvenc-stage1-ac4/evidence/build-src/ffmpeg-8.1.1.tar.xz"
+    },
+    {
+      "path": "artifacts/sources/ffmpeg-8.1.1.tar.xz.asc",
+      "bytes": 520,
+      "sha256": "34e2109f97bededb42a3cb5e7b9a7bb67dd6fe4749a7bce630ec1c833caa2b37",
+      "kind": "signature",
+      "license": "Release signature",
+      "origin": "nvenc-stage1-ac4/evidence/build-src/ffmpeg-8.1.1.tar.xz.asc"
+    },
+    {
+      "path": "artifacts/sources/ffmpeg-devel.asc",
+      "bytes": 1709,
+      "sha256": "397b3becedcd5a98769967ff1ff8501ddc89f8368b8f766e4701377d7dbaabe5",
+      "kind": "public_key",
+      "license": "Public release verification key; not a private key",
+      "origin": "nvenc-stage1-ac4/evidence/build-src/ffmpeg-devel.asc"
+    },
+    {
+      "path": "artifacts/sources/nv-codec-headers.tar.gz",
+      "bytes": 79617,
+      "sha256": "e30d4791fd386de8b5c9f88dec781e546ec148b8808440dd421da5f26c2700ae",
+      "kind": "upstream_source",
+      "license": "Per-header NVIDIA permission notices; does not cover drivers",
+      "origin": "nvenc-stage1-ac4/evidence/build-src/nv-codec-headers.tar.gz"
+    },
+    {
+      "path": "artifacts/candidate-lib/libavcodec.so.62",
+      "bytes": 16516408,
+      "sha256": "3d7e7e241715fb6a3468a4d47d0fdaef3e6b79cecc3d3bb1f6d3118fac265367",
+      "kind": "private_binary",
+      "license": "nonfree and unredistributable; private retention only",
+      "origin": "nvenc-stage1-ac4/evidence/candidate-lib/libavcodec.so.62"
+    },
+    {
+      "path": "patches/COPYING.GPLv3",
+      "bytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "origin": "nvenc-stage1-ac4/evidence/build-src/ffmpeg-8.1.1.tar.xz!ffmpeg-8.1.1/COPYING.GPLv3",
+      "kind": "license_text",
+      "license": "GNU GPLv3 verbatim license text"
+    },
+    {
+      "path": "docs/build_packages.txt",
+      "bytes": 7993,
+      "sha256": "254308a64ba66d5b0292b62d4eab774ceefdd644c8fae5394dbb77d242593f3b",
+      "origin": "nvenc-stage1-ac4/evidence/build-packages.txt",
+      "kind": "historical_build_packages",
+      "license": "Package-version inventory; not dependency binaries"
+    },
+    {
+      "path": "scripts/wav_check.py",
+      "bytes": 3413,
+      "sha256": "8182967ea0883f049803fcf3915a2a475020515a2419876063c5b24e3deb4a64",
+      "origin": "nvenc-stage1-ac4/wav-check.py",
+      "kind": "maintained_validation_source",
+      "license": "Task-origin code; no separate redistribution license assigned"
+    }
+  ],
+  "maintained_from": [
+    {
+      "path": "scripts/wav_check.py",
+      "origins": [
+        "nvenc-stage1-ac4/wav-check.py"
+      ],
+      "origin_sha256": "8182967ea0883f049803fcf3915a2a475020515a2419876063c5b24e3deb4a64",
+      "change": "Byte-for-byte copy; filename normalized",
+      "origin_hashes": [
+        {
+          "path": "nvenc-stage1-ac4/wav-check.py",
+          "sha256": "8182967ea0883f049803fcf3915a2a475020515a2419876063c5b24e3deb4a64"
+        }
+      ]
+    },
+    {
+      "path": "tests/test_wav_check.py",
+      "origins": [
+        "nvenc-stage1-ac4/wav-check-tests.py"
+      ],
+      "origin_sha256": "ecfb5208eead540f1e17f2e2a0cbb92b69dbed71125b26134d8295543fad41c0",
+      "change": "Import resolves scripts/wav_check.py from repository root",
+      "origin_hashes": [
+        {
+          "path": "nvenc-stage1-ac4/wav-check-tests.py",
+          "sha256": "ecfb5208eead540f1e17f2e2a0cbb92b69dbed71125b26134d8295543fad41c0"
+        }
+      ]
+    },
+    {
+      "path": "scripts/build_libavcodec.sh",
+      "origins": [
+        "nvenc-stage1-ac4/build.sh",
+        "nvenc-stage1-ac4/build-resume.sh"
+      ],
+      "change": "Merged fresh-build core; explicit inputs/output; no APT/cache/host assumptions or container launcher",
+      "origin_hashes": [
+        {
+          "path": "nvenc-stage1-ac4/build.sh",
+          "sha256": "853523538850c6ecb4fb2182cf2b8efa6d0d5a38967ead10825becc544d9d8cb"
+        },
+        {
+          "path": "nvenc-stage1-ac4/build-resume.sh",
+          "sha256": "ba1fbbaef6b7a505f18df271552d4be665326c2ccaa188028e9c90192d7bf5dc"
+        }
+      ]
+    },
+    {
+      "path": "scripts/runtime_files.sh",
+      "origins": [
+        "nvenc-stage2/trial-files.sh"
+      ],
+      "change": "Protected drop-in move helper; function name normalized",
+      "origin_hashes": [
+        {
+          "path": "nvenc-stage2/trial-files.sh",
+          "sha256": "17231da614642b4f8ca5d854efbdd6c5c204a3184c48bce1219df6f06ec04270"
+        }
+      ]
+    },
+    {
+      "path": "scripts/rollback_runtime.sh",
+      "origins": [
+        "nvenc-stage2/rollback-runtime.sh"
+      ],
+      "change": "Explicit current unit/drop-in identities; local helper; no frozen PID or SSH wrapper",
+      "origin_hashes": [
+        {
+          "path": "nvenc-stage2/rollback-runtime.sh",
+          "sha256": "385d2054f6a47b455499acc3627492bc2d35ae114e2bf341377a756517b30641"
+        }
+      ]
+    },
+    {
+      "path": "tests/test_runtime_files.sh",
+      "origins": [
+        "nvenc-stage2/test-trial-files.sh"
+      ],
+      "change": "Explicit empty local fixture directory; reports unsupported symlink test as SKIP",
+      "origin_hashes": [
+        {
+          "path": "nvenc-stage2/test-trial-files.sh",
+          "sha256": "a47e34a2257c0e6dd85a6acb40999e7f904470d41bb5cfab510586aba53537c9"
+        }
+      ]
+    }
+  ]
+}

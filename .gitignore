@@ -1,0 +1,11 @@
+/TODO.md
+/DEVLOG.md
+/tmp/
+/artifacts/
+/.env
+/.env.*
+!.env.example
+*.pem
+*.key
+__pycache__/
+*.pyc

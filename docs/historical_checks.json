@@ -1,0 +1,312 @@
+{
+  "observed_date": "2026-10-09",
+  "status": "HISTORICAL_NOT_RERUN",
+  "suites": {
+    "candidate": [
+      "PASS dynamic_resolution",
+      "PASS cpu_control",
+      "PASS h264_nvenc",
+      "PASS hevc_nvenc",
+      "PASS hevc10_nvenc",
+      "PASS h264_nvdec",
+      "PASS hevc_nvdec",
+      "PASS hevc10_nvdec",
+      "PASS cuda_scale_transcode",
+      "PASS hls_audio",
+      "PASS ass_subtitles",
+      "PASS decoded_frame_count_h264 frames=12",
+      "PASS decoded_frame_count_hevc frames=12",
+      "PASS decoded_frame_count_hevc10 frames=12",
+      "PASS decoded_frame_count_scaled frames=12",
+      "PASS decoded_frame_count_subtitles frames=12",
+      "PASS hls_output_decode"
+    ],
+    "ac4-candidate": [
+      "PASS dolby-2ch_pcm",
+      "PASS dolby-2ch_vendor_comparison",
+      "PASS dolby-2ch_aac",
+      "PASS dolby-6ch_pcm",
+      "PASS dolby-6ch_vendor_comparison",
+      "PASS dolby-6ch_aac",
+      "PASS dolby-ims_pcm",
+      "PASS dolby-ims_vendor_comparison",
+      "PASS dolby-ims_aac",
+      "PASS dolby-514ch_pcm",
+      "PASS dolby-514ch_vendor_comparison",
+      "PASS dolby-514ch_aac",
+      "PASS kdaf_pcm",
+      "PASS kdaf_vendor_comparison",
+      "PASS kdaf_aac"
+    ],
+    "audio-candidate": [
+      "PASS aac_decode",
+      "PASS aac_vendor_comparison",
+      "PASS ac3_decode",
+      "PASS ac3_vendor_comparison",
+      "PASS eac3_decode",
+      "PASS eac3_vendor_comparison",
+      "PASS dts_decode",
+      "PASS dts_vendor_comparison",
+      "PASS truehd_decode",
+      "PASS truehd_vendor_comparison",
+      "PASS flac_decode",
+      "PASS flac_vendor_comparison",
+      "PASS mp3_decode",
+      "PASS mp3_vendor_comparison",
+      "PASS opus_decode",
+      "PASS opus_vendor_comparison"
+    ]
+  },
+  "waveform_checks": [
+    {
+      "test": "ac4-candidate/dolby-2ch-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 6.0,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "ac4-candidate/dolby-514ch-comparison",
+      "channels": 12,
+      "sample_rate": 48000,
+      "seconds": 6.0,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "ac4-candidate/dolby-6ch-comparison",
+      "channels": 6,
+      "sample_rate": 48000,
+      "seconds": 6.0,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "ac4-candidate/dolby-ims-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 6.0,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "ac4-candidate/kdaf-comparison",
+      "channels": 6,
+      "sample_rate": 48000,
+      "seconds": 5.999979166666667,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "audio-candidate/aac-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 1.0026666666666666,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "audio-candidate/ac3-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 1.0186666666666666,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "audio-candidate/dts-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 1.0026666666666666,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "audio-candidate/eac3-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 1.0186666666666666,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "audio-candidate/flac-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 1.0,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "audio-candidate/mp3-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 1.0,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "audio-candidate/opus-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 1.0,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    },
+    {
+      "test": "audio-candidate/truehd-comparison",
+      "channels": 2,
+      "sample_rate": 48000,
+      "seconds": 1.0,
+      "correlation": 1.0,
+      "normalized_rmse": 0.0
+    }
+  ],
+  "full_vendor_feature_parity": "FAIL",
+  "missing_encoders": [
+    "apv_vulkan",
+    "av1_amf",
+    "av1_vulkan",
+    "ffv1_vulkan",
+    "h264_amf",
+    "h264_vulkan",
+    "hevc_amf",
+    "hevc_vulkan",
+    "prores_ks_vulkan",
+    "vp9_v4l2m2m"
+  ],
+  "missing_decoders": [
+    "av1_amf",
+    "av1_v4l2m2m",
+    "braw",
+    "h264_amf",
+    "hevc_amf",
+    "hevc_vulkan_shader",
+    "libr3dsdk",
+    "vp9_amf"
+  ],
+  "shared_codec_descriptor_count": 540,
+  "shared_codec_id_mismatches": 0,
+  "ac4_codec_id": 86119,
+  "missing_exported_symbols": 0,
+  "native_playback": {
+    "sample_id": "H264_AAC_movie_01",
+    "scope": "same H264/AAC movie; native 720p menu displayed 1Mbps",
+    "after_initial": [
+      {
+        "currentTime": 176,
+        "paused": true,
+        "readyState": 4,
+        "width": 1280,
+        "height": 720,
+        "errorCode": null
+      },
+      {
+        "currentTime": 182.415616,
+        "paused": false,
+        "readyState": 4,
+        "width": 1280,
+        "height": 720,
+        "errorCode": null,
+        "muted": false
+      }
+    ],
+    "seek": {
+      "method": "visible progress bar click; 03:15 to 16:58; resumed with visible play button after buffering",
+      "observations": [
+        {
+          "currentTime": 1017.9,
+          "paused": true,
+          "readyState": 1,
+          "width": 1280,
+          "height": 720,
+          "errorCode": null
+        },
+        {
+          "currentTime": 1018.236976,
+          "paused": false,
+          "readyState": 4,
+          "width": 1280,
+          "height": 720,
+          "errorCode": null
+        },
+        {
+          "currentTime": 1028.084365,
+          "paused": false,
+          "readyState": 4,
+          "width": 1280,
+          "height": 720,
+          "errorCode": null
+        }
+      ]
+    },
+    "gpu": {
+      "encoder_percent": 28,
+      "decoder_percent": 96,
+      "worker_belongs_to_mediasrv": true
+    },
+    "audio": "User confirmed normal sound and no obvious lip-sync mismatch; agent did not independently hear audio",
+    "final": {
+      "currentTime": 1146.165671,
+      "paused": false,
+      "readyState": 4,
+      "width": 1280,
+      "height": 720,
+      "errorCode": null
+    }
+  },
+  "rollback_file_guard_tests": "4/4 historical target-Linux file tests",
+  "real_service_rollback_exercised": false,
+  "nas_reboot_recovery": "NOT_VERIFIED",
+  "current_nas_state": "UNKNOWN",
+  "long_term_stability": "NOT_VERIFIED",
+  "preservation_pairs": [
+    "other service PIDs/states unchanged",
+    "running container ID set unchanged",
+    "source size/mtime/mode/uid/gid unchanged"
+  ],
+  "originals_unchanged": "vendor ffmpeg/ffprobe/libavcodec and original unit reported unchanged",
+  "source_records": [
+    {
+      "path": "nvenc-stage1-ac4/evidence/candidate/results.txt",
+      "sha256": "d1733fd37a1c251383f8e345ceaec227420f3ea3bbe7aac71579bc8a37e701b0"
+    },
+    {
+      "path": "nvenc-stage1-ac4/evidence/ac4-candidate/results.txt",
+      "sha256": "f7bad06b0ac70bd41db6bec8cc15352ee2264f6e8db08ec445176b8150ea7df5"
+    },
+    {
+      "path": "nvenc-stage1-ac4/evidence/audio-candidate/results.txt",
+      "sha256": "124ec1a4ce48cd1069de02aa0c416058e03dec4869086daf93837b8411b57a5a"
+    },
+    {
+      "path": "nvenc-stage1-ac4/evidence/required-features.log",
+      "sha256": "e61ade3c0e1605db141136dcdf4b162ab9371bcc3bd5eba623d0654e68dad949"
+    },
+    {
+      "path": "nvenc-stage1-ac4/evidence/compatibility.log",
+      "sha256": "46ec1a295eab338709f7173274251e3744ef4799c887207c6f181ec2c2a59cfb"
+    },
+    {
+      "path": "nvenc-stage1/evidence/build-codec-retry.log",
+      "sha256": "d657c63f0e3b2dcf13698e1da85aaa640393fda2cdd5230d0b91fba004a245ec"
+    },
+    {
+      "path": "nvenc-stage2/native-playback-observations.json",
+      "sha256": "82a53aa3eaca2d8d469e1fe04ae7c48873a17199100afa393383bfbe3fa1a225"
+    },
+    {
+      "path": "nvenc-stage2/progress.md",
+      "sha256": "a81147e0c60af29adcce01d0ac33dcdc35bcc000988b455246e6971d307fed25"
+    },
+    {
+      "path": "nvenc-stage2/trial-status.txt",
+      "sha256": "421c962f932e3bd013503f56d2a1f444bf61165eca03a36d717241ce616f287b"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-09-fnos-r535-nvenc.md",
+      "sha256": "b3bf25e0ec7fd393650af2d7e4f6d48baf0bb0242468564a3d7e3e75cfd25e04"
+    }
+  ]
+}

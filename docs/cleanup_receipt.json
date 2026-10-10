@@ -1,0 +1,62 @@
+[
+  {
+    "source": "nvenc-stage1",
+    "files": 97,
+    "bytes": 25634751,
+    "state": "RECYCLED",
+    "method": "Windows Recycle Bin only",
+    "recovery": "Restore from Windows Recycle Bin; do not empty",
+    "inventory_sha256": "9522ab72606b4d3ea3f010e8ea468658ed904a6ec797675fde69104acca07ee0",
+    "recycle_item_readback": true,
+    "delete_hresult": "0x00270008",
+    "checked_at": "2026-10-09T19:26:13.9319309+08:00"
+  },
+  {
+    "source": "nvenc-stage1-ac4",
+    "files": 402,
+    "bytes": 148621055,
+    "state": "RECYCLED",
+    "method": "Windows Recycle Bin only",
+    "recovery": "Restore from Windows Recycle Bin; do not empty",
+    "inventory_sha256": "651fb9b2e05b5dcc6cc1ceb3cfecb6dc022afad2f2bb3946ef0c38134eda101b",
+    "recycle_item_readback": true,
+    "delete_hresult": "0x00270008",
+    "checked_at": "2026-10-09T19:26:14.6358891+08:00"
+  },
+  {
+    "source": "nvenc-real-media",
+    "files": 22,
+    "bytes": 73610,
+    "state": "RECYCLED",
+    "method": "Windows Recycle Bin only",
+    "recovery": "Restore from Windows Recycle Bin; do not empty",
+    "inventory_sha256": "d1afd4edb939b8f4e5d08b29e3355471e9ea8dd4c770bb015d63ed6a8f9ae52b",
+    "recycle_item_readback": true,
+    "delete_hresult": "0x00270008",
+    "checked_at": "2026-10-09T19:26:14.9517473+08:00"
+  },
+  {
+    "source": "nvenc-stage2",
+    "files": 55,
+    "bytes": 528281,
+    "state": "RECYCLED",
+    "method": "Windows Recycle Bin only",
+    "recovery": "Restore from Windows Recycle Bin; do not empty",
+    "inventory_sha256": "ef6c358772096d9a723ea100e48343102fecdc421cbd8bea76da5a5cf851c617",
+    "recycle_item_readback": true,
+    "delete_hresult": "0x00270008",
+    "checked_at": "2026-10-09T19:26:15.3094224+08:00"
+  },
+  {
+    "source": "docs/superpowers/plans/2026-10-09-fnos-r535-nvenc.md",
+    "files": 1,
+    "bytes": 10587,
+    "state": "RECYCLED",
+    "method": "Windows Recycle Bin only",
+    "recovery": "Restore from Windows Recycle Bin; do not empty",
+    "inventory_sha256": "5dc37a785b51c154ed48e547377d7bcb766c8a5d0c7138dc55ae1f3b420f2c73",
+    "recycle_item_readback": true,
+    "delete_hresult": "0x00270008",
+    "checked_at": "2026-10-09T19:26:15.4325861+08:00"
+  }
+]
