@@ -12,13 +12,13 @@ import time
 import uuid
 from nvenc_bootstrap import licensed
 
-VERSION='0.1.0'
+VERSION='0.1.1'
 PROJECT=Path(__file__).absolute().parents[1]
 DATA=Path('/vol1/1000/Solis_FnOS_NVENC')
 CHOICES={'1':'check','2':'install','3':'update-tool','4':'status','5':'verify',
          '6':'disable','7':'uninstall-patch','8':'uninstall-tool'}
 MENU='''
-Solis fnOS NVENC  |  v0.1.0
+Solis fnOS NVENC  |  v0.1.1
   1. 检查环境与兼容性
   2. 安装补丁（构建、安装、开机检查）
   3. 更新／修复工具

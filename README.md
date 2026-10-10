@@ -2,6 +2,8 @@
 
 让特定 P4 / R535 环境继续使用飞牛原生影视的 NVENC 转码。通过 SSH 编号菜单完成检查、源码构建、补丁安装、开机检查、暂停和卸载，保留每次开机的恢复记录。
 
+当前版本为 [v0.1.1 源码维护版](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/releases/tag/v0.1.1)：统一中文说明和直接克隆入口，加入项目架构图，退役旧实验与传输文件。固定构建输入、候选库和运行身份合同不变，本版没有新增 NAS 验收。
+
 **首版范围有限：完整原版功能对等仍未通过；其他格式和长期稳定性未验证。** [v0.1.0](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/releases/tag/v0.1.0) 已完成有限 NAS 安装、整机重启、开机检查、普通影片单路 720p、一次跳转及卸载恢复验收，见[安装器报告](docs/installer_report.md)。
 
 ## 适用范围
@@ -37,7 +39,7 @@ bash fnos-nvenc.sh
 菜单只在交互终端运行：
 
 ```text
-Solis fnOS NVENC  |  v0.1.0
+Solis fnOS NVENC  |  v0.1.1
   1. 检查环境与兼容性
   2. 安装补丁（构建、安装、开机检查）
   3. 更新／修复工具
