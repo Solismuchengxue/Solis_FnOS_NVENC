@@ -5,13 +5,13 @@
 | 层级 | 当前结果 | 证据边界 |
 | --- | --- | --- |
 | 固定公开下载 | PASS | 四项 SHA256 / 大小核对；FFmpeg 签名由构建核心核对 |
-| 公开 Docker 双构建 | PASS | 新公开环境，两次独立源码构建，均匹配固定候选 |
+| 公开 Docker 双构建 | PASS | 正式工作区、源码导出及真实公开 Git 克隆各完成独立双构建，共六次均匹配固定候选 |
 | Linux 隔离安装与恢复测试 | PASS | 90 项测试；临时根目录实际文件，服务/GPU 边界为替身 |
 | NAS 新安装与更换 | PASS | 旧 6 文件工具可恢复更换；重复安装、暂停恢复及暂停更新通过 |
 | NAS 整机重启、自动启动、实际播放与卸载 | PASS | 一次整机重启；新 boot 启动准备及实际候选映射、原生 720p / 跳转 / 新声音、卸载和旧可用状态恢复通过 |
-| 公开仓库与 v0.1.0 | NOT_PUBLISHED | 必须现场验收通过后发布 |
+| 公开源码与克隆入口 | PASS | [公开仓库](https://github.com/Solismuchengxue/Solis_FnOS_NVENC)；真实 HTTPS 克隆、Bash 帮助、交互菜单退出及 90 项 Linux 测试通过；发行入口 [v0.1.0](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/releases/tag/v0.1.0) |
 
-公开构建使用 [固定输入](build_sources.json)、[286 项依赖版本](build_packages.txt)、固定基础镜像 digest 和 Debian snapshot。正式工作区与 76 文件源码导出各完成一组公开下载、隔离环境及双构建，共四次库均为 16,516,408 字节，SHA256 `88e48674062ee5ef71864a2619324772bc856fec78c0d4793920fa7d4c15cd57`。候选身份合同未修改。完整输出保存在本地忽略的 `artifacts/installer-20261010-public-build` 和 `artifacts/installer-20261010-clean-source-build`，不公开 nonfree 库或镜像。导出尚不是 Git 克隆；实际干净克隆检查留在发布阶段。
+公开构建使用 [固定输入](build_sources.json)、[286 项依赖版本](build_packages.txt)、固定基础镜像 digest 和 Debian snapshot。正式工作区、76 文件源码导出、真实公开 Git 克隆各完成一组公开下载、隔离环境及双构建，共六次库均为 16,516,408 字节，SHA256 `88e48674062ee5ef71864a2619324772bc856fec78c0d4793920fa7d4c15cd57`。候选身份合同未修改。完整输出保存在本地忽略的 `artifacts/installer-20261010-public-build`、`artifacts/installer-20261010-clean-source-build` 和 `artifacts/installer-20261010-public-git-build`，不公开 nonfree 库或镜像。
 
 原单库控制器字节未改变，SHA256 `1250a7a648e9bc94709d250f11e11ee8b1447bdf3b70ff6356cb0762bd78f1cf`。历史普通影片单路 720p、一次跳转、听感与回退保持原报告结论；完整原版功能对等仍 FAIL，其他格式和长期稳定性 NOT_VERIFIED。
 
@@ -32,3 +32,7 @@
 恢复证据 ZIP 22,786 字节，SHA256 `7d9aec2c7efdd98cea0a6f9cf4f1d0531390ae1037329e0fa39866e3d8dbad12`。本地下载核对，并逐项校验 20 个成员及完整清单，无 preboot/postboot failure；最终原因 `verified_playback`。私人归档在本地忽略的 `artifacts/installer-20261010-nas-v2`，本轮 NAS 展开材料和恢复记录保留，公开内容不依赖这些材料。安装/开机门因此开放，固定身份合同与原控制器未修改。
 
 传输与检查限制：初次安装窗口后 Windows 参数过长，SSH 进程未启动；明确获准一次短入口重试后，安装及唯一重启成功。额外普通用户目录读回被权限拒绝，后续检查又使用了目标未返回的 `EnvironmentFiles` 属性；这些检查不作为 PASS，最终改为读取产品已使用的有效 drop-in / 启动命令。恢复直接证据来自已校验的 root 验收归档。最终 pmon 仍显示非本轮的 python3 GPU 进程，不能声称整台 NAS 无任何 GPU 工作；本轮播放器已退出，卸载消费者门通过，未改动其他进程。
+
+通过现场门后公开 76 个共享文件。实际 HTTPS 克隆提交 `42bd869bf8755a9ce79eaa916af755545415eea1`，不含私人 artifacts/tmp 或编译制品；Bash 帮助、真实本地 PTY 菜单退出、90 项 Linux 测试及固定公开输入身份通过。再以该克隆建立全新公开 Docker 环境，签名/286 项依赖一致，两个干净构建及各自 4 项文件保护测试通过。最后收敛只影响维护说明、共享报告和发行状态，不改构建核心、补丁、运行身份或执行代码；源码发行由上表 GitHub 入口提供。
+
+首次克隆检查误调用历史 `verify_materials.py`，因公开克隆没有私人归档而失败；它不属于公开安装链。维护说明已明确区分，实际公开入口按仓库输入和公开来源核对，没有复制私人材料补位。隔离 root PTY 检查的 Git 所有权保护仅用本次进程的精确 safe.directory 解决，未修改全局 Git 配置。

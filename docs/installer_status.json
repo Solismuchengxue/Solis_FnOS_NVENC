@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "nas_installer_verified": true,
   "autostart_verified": true,
-  "public_release": false,
+  "public_release": true,
   "evidence": "docs/installer_report.md"
 }

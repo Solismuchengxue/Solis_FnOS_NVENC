@@ -25,8 +25,8 @@
 | 文档 | 用途 | 受众 | 状态 |
 | --- | --- | --- | --- |
 | [Blueprint](docs/blueprint.md) | explanation：唯一项目意图 | 用户、负责人 | current |
-| [安装器实施](docs/ssh_installer_plan.md) | plan：三个获批里程碑与接口 | 负责人 | in progress |
-| [安装器报告](docs/installer_report.md) | evidence：公开双构建、隔离、现场与发布分层 | 用户、负责人 | in progress |
+| [安装器实施](docs/ssh_installer_plan.md) | plan：三个获批里程碑与接口 | 负责人 | completed |
+| [安装器报告](docs/installer_report.md) | evidence：公开双构建、隔离、现场与发布分层 | 用户、负责人 | current |
 | [README](README.md) | reference：用户入口与限制 | 用户 | current |
 | [项目规则](AGENTS.md) | reference：持久绑定与执行边界 | 负责人 | current |
 | [来源与边界](docs/source_and_evidence.md) | reference：授权、来源映射、历史结论与清理状态 | 负责人 | current |
