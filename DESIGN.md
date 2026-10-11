@@ -1,42 +1,60 @@
-# Solis_FnOS_NVENC 设计入口
+# Solis fnOS NVENC 架构与文档导航
 
-项目意图唯一权威为[项目蓝图](docs/blueprint.md)，用户入口为 [README](README.md)。公开首版的分层验证和发布事实由[安装器报告](docs/installer_report.md)维护；历史工作包不推导新的运行或发布权限。
+本页说明模块关系、交付边界和阅读入口。项目意图以[项目蓝图](docs/blueprint.md)为唯一权威，安装步骤见 [README](README.md)，验证事实见[验收报告](docs/installer_report.md)。
 
-## 架构与职责
+## 架构概要
 
-`fnos-nvenc.sh` / `nvenc_cli.py` 提供 SSH 菜单与标准 sudo；`nvenc_build.py` 从固定公开来源编排 Docker 双构建和候选身份门；`nvenc_install.py` 管理版本目录、清单及普通原子指针，bootstrap 执行前核对清单；`nvenc_autostart.py` 管理启动检查、本 boot 恢复点和锁交接，运行控制器保留四命令兼容。
+| 模块 | 职责 |
+| --- | --- |
+| [fnos-nvenc.sh](fnos-nvenc.sh)、[nvenc_cli.py](scripts/nvenc_cli.py) | SSH 编号菜单、命令行兼容与标准 sudo 入口 |
+| [nvenc_build.py](scripts/nvenc_build.py)、[容器构建入口](build/run_public_build.sh) | 固定公开来源校验、Docker 双构建及候选身份门 |
+| [nvenc_install.py](scripts/nvenc_install.py)、[nvenc_bootstrap.py](scripts/nvenc_bootstrap.py) | 版本目录、文件清单、原子指针及执行前校验 |
+| [nvenc_autostart.py](scripts/nvenc_autostart.py) | 每次服务启动检查、本次开机恢复点、事务阶段及锁交接 |
+| [nvenc_runtime.py](scripts/nvenc_runtime.py) | 组件检查、单库接入、实际映射核对、消费者检查和回退 |
 
-本工程维护应用层单库兼容、检查与恢复。Solis_Pvescript 继续维护 PVE/vGPU/Guest 驱动与 Toolkit；官方组件、宿主和 NVIDIA License 保持原责任边界。现行代码只维护公开单库安装、构建与恢复；AC4 demux、多库及配套媒体实验能力已退役。
+公开构建在宿主下载并校验输入，在 Docker 内准备依赖和编译。候选库必须与固定身份一致，再经安装清单接入原生影视。工具版本用普通 JSON 指针原子切换，不使用符号链接。
+
+启动检查失败时清除自有注入；每次开机独立保存恢复点。卸载先核对恢复、文件身份和消费者，再移除自建文件。完整规则见[维护说明](docs/maintenance.md)。
 
 ## 项目架构图
 
 ![Solis fnOS NVENC 项目架构](docs/assets/project_architecture.png)
 
-保留 [Figma 可编辑原图](https://www.figma.com/board/3tIHKaCHRA2wdciTQZij3B)和 [Mermaid 定义](docs/assets/project_architecture.mmd)。图示表达职责与材料流，不表示新增服务。
+[Figma 可编辑原图](https://www.figma.com/board/3tIHKaCHRA2wdciTQZij3B) · [Mermaid 定义](docs/assets/project_architecture.mmd)
 
-源码直接克隆到 `/vol1/1000/Solis_FnOS_NVENC/`；`builds/` 和 `tmp/` 为忽略的生成目录，所需临时目录由工具创建。下载在宿主校验，依赖准备与编译在 Docker 内；安装、恢复记录和临时启动状态分别位于 `/opt`、`/var/lib`、`/run`。
+图示表达职责和材料流，项目仍是原生 mediasrv 辅助工具。源码与生成材料位于 `/vol1/1000/Solis_FnOS_NVENC/`，安装、恢复和临时启动状态分别使用 `/opt`、`/var/lib`、`/run`。
 
-版本目录由 root 管理，以普通 JSON 原子指针切换，不使用符号链接。启动前检查失败清空本工具注入；旧 boot 状态不重放。卸载先核对恢复、文件身份及消费者，只移除自身新建且身份匹配的材料。
+## 责任边界
 
-## 当前文档入口
+本工程维护应用层单库兼容、安装、检查和恢复。Solis_Pvescript 继续维护 PVE、vGPU、Guest 驱动与 Toolkit，NVIDIA License 保持原责任边界。旧 AC4 demux、多库及配套媒体实验能力已退役。
 
-| 文档 | 用途 | 受众 | 状态 |
+源码、构建、隔离软件测试、现场映射与人工播放是独立证据层；已加载候选不等于当前影片已通过。完整原版功能对等仍失败，未覆盖格式与长期稳定性仍未验证。
+
+## 按需要阅读
+
+文档按读者任务区分用途，沿用现有文件。分类参考 [Diátaxis](https://diataxis.fr/)，不额外建立四套目录。
+
+| 文档 | 主要用途 | 读者 | 状态 |
 | --- | --- | --- | --- |
-| [用户手册](README.md) | 安装、使用、更新及卸载 | 用户 | 现行 |
-| [项目蓝图](docs/blueprint.md) | 唯一项目意图 | 用户、负责人 | 现行 |
-| [项目规则](AGENTS.md) | 执行边界与维护要求 | 负责人 | 现行 |
-| [维护说明](docs/maintenance.md) | 公开安装器验证、恢复与材料管理 | 负责人 | 现行 |
-| [安装后的快速说明](docs/quick_start.md) | 随工具安装的离线短帮助 | 用户 | 现行 |
-| [安装器报告](docs/installer_report.md) | 首版构建、隔离、现场与发布证据 | 用户、负责人 | 现行 |
-| [来源与边界](docs/source_and_evidence.md) | 固定来源、必要结论与验证限制 | 负责人 | 现行 |
-| [运行身份合同](docs/runtime_profile.json) | 已知组件、依赖和候选身份 | 工具、负责人 | 固定合同 |
-| [构建来源](docs/build_sources.json)、[依赖版本](docs/build_packages.txt)、[材料清单](docs/materials.json) | 输入身份与材料追溯 | 工具、负责人 | 固定材料 |
-| [发行门状态](docs/installer_status.json) | 首版安装与开机验收门 | 工具、负责人 | 已有有限证据 |
+| [README](README.md) | 入门与操作：首次安装、播放、更新、暂停和卸载 | 用户 | 现行 |
+| [快速使用说明](docs/quick_start.md) | 操作：随工具安装的离线速查 | 已安装用户 | 现行 |
+| [维护说明](docs/maintenance.md) | 操作：验证、故障恢复、材料管理和文档约定 | 维护者 | 现行 |
+| [验收报告](docs/installer_report.md) | 参考：各版本有限验证、现场记录、已知问题和缺口 | 用户、维护者 | 截至 2026-10-11 |
+| [来源与边界](docs/source_and_evidence.md) | 参考：输入来源、许可、必要旧结论及证据限制 | 维护者 | 现行 |
+| [项目蓝图](docs/blueprint.md) | 原理说明：唯一项目意图、范围与非目标 | 用户、负责人 | 现行 |
+| [项目规则](AGENTS.md) | 参考：执行授权与维护约束 | 负责人 | 现行 |
+| [单库完成报告](docs/completion_report.md) | 参考：身份合同引用的原单库证据 | 工具、维护者 | 固定历史证据 |
 
-身份合同引用的[合并完成报告](docs/completion_report.md)原路径保留，正文按其原单库工作包理解；只修复链接和状态提示，不改证据正文或合同。旧过程报告与计划不再保存在项目中。TODO.md 和 DEVLOG.md 为 Git 忽略的本地记录。
+## 机器读取的固定材料
 
-## 验证限制与更新触发
+| 文件 | 权威职责 |
+| --- | --- |
+| [runtime_profile.json](docs/runtime_profile.json) | 组件、依赖及候选身份合同 |
+| [build_sources.json](docs/build_sources.json)、[build_packages.txt](docs/build_packages.txt) | 固定公开来源和依赖版本 |
+| [materials.json](docs/materials.json) | 原样材料身份及整理代码的来源映射 |
+| [historical_checks.json](docs/historical_checks.json) | 必要旧检查计数与缺失 codec 名单 |
+| [installer_status.json](docs/installer_status.json) | 首版安装及开机验收门，不代表当前版本或实时状态 |
 
-完整原版功能对等仍 FAIL，未覆盖格式与长期稳定性未验证。源码构建、工具模拟和 NAS 运行是不同证据层；实际映射不代替本次影片的人工播放确认。
+`completion_report.md` 保留合同引用路径和证据正文，其中旧私人包已退役，当前操作以现行手册为准。TODO.md 和 DEVLOG.md 是 Git 忽略的本地行动与维护记录。旧过程报告和计划不再单独保留。
 
-架构、接口、交付边界或文档职责变化时更新本入口；当前验证事实进入对应报告，项目意图变化才修改项目蓝图。
+架构、接口、交付边界或文档职责变化时更新本页；验证事实进入验收报告，项目意图变化才更新蓝图。写作约定见[维护说明](docs/maintenance.md#中文文档维护约定)。
