@@ -4,7 +4,7 @@
 
 当前版本为 [v0.1.1 源码维护版](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/releases/tag/v0.1.1)：统一中文说明和直接克隆入口，加入项目架构图，退役旧实验与传输文件。固定构建输入、候选库和运行身份合同不变。发行后于 2026-10-11 完成一次有限 NAS 接入、重启、播放及恢复核对，保留新版与开机自动启用，见[安装器报告](docs/installer_report.md)。
 
-**范围有限：完整原版功能对等仍未通过；未覆盖格式和长期稳定性未验证。** [v0.1.0](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/releases/tag/v0.1.0) 已完成有限 NAS 安装、整机重启、开机检查、普通影片单路 720p、一次跳转及卸载恢复验收；后续两份 HEVC 的有限播放结论和 SDR／外挂字幕缺口，见[安装器报告](docs/installer_report.md)。
+**范围有限：完整原版功能对等仍未通过；未覆盖格式和长期稳定性未验证。** [v0.1.0](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/releases/tag/v0.1.0) 已完成有限 NAS 安装、整机重启、开机检查、普通影片单路 720p、一次跳转及卸载恢复验收；后续 HEVC Main／Main10 SDR 和外挂 SRT／ASS 的单路有限播放通过，仅覆盖所测素材与客户端字幕显示。硬件解码、服务端字幕烧录及剩余缺口见[安装器报告](docs/installer_report.md)。
 
 ## 适用范围
 
