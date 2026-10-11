@@ -2,9 +2,9 @@
 
 让特定 P4 / R535 环境继续使用飞牛原生影视的 NVENC 转码。通过 SSH 编号菜单完成检查、源码构建、补丁安装、开机检查、暂停和卸载，保留每次开机的恢复记录。
 
-当前版本为 [v0.1.1 源码维护版](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/releases/tag/v0.1.1)：统一中文说明和直接克隆入口，加入项目架构图，退役旧实验与传输文件。固定构建输入、候选库和运行身份合同不变。发行后于 2026-10-11 完成一次有限 NAS 接入、重启、播放及恢复核对，保留新版与开机自动启用，见[安装器报告](docs/installer_report.md)。
+当前版本为 [v0.1.1 源码标签](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/tree/v0.1.1)：统一中文说明和直接克隆入口，加入项目架构图，退役旧实验与传输文件。固定构建输入、候选库和运行身份合同不变。发行后于 2026-10-11 完成一次有限 NAS 接入、重启、播放及恢复核对，保留新版与开机自动启用，见[安装器报告](docs/installer_report.md)。源码通过仓库分发，克隆与更新使用 `main`，版本标签保留；当前不单独维护 GitHub Release。
 
-**范围有限：完整原版功能对等仍未通过；未覆盖格式和长期稳定性未验证。** [v0.1.0](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/releases/tag/v0.1.0) 已完成有限 NAS 安装、整机重启、开机检查、普通影片单路 720p、一次跳转及卸载恢复验收；后续 HEVC Main／Main10 SDR 和外挂 SRT／ASS 的单路有限播放通过，仅覆盖所测素材与客户端字幕显示。硬件解码、服务端字幕烧录及剩余缺口见[安装器报告](docs/installer_report.md)。
+**范围有限：完整原版功能对等仍未通过；未覆盖格式和长期稳定性未验证。** [v0.1.0](https://github.com/Solismuchengxue/Solis_FnOS_NVENC/tree/v0.1.0) 已完成有限 NAS 安装、整机重启、开机检查、普通影片单路 720p、一次跳转及卸载恢复验收；后续 HEVC Main／Main10 SDR 和外挂 SRT／ASS 的单路有限播放通过，仅覆盖所测素材与客户端字幕显示。硬件解码、服务端字幕烧录及剩余缺口见[安装器报告](docs/installer_report.md)。
 
 ## 适用范围
 
@@ -111,6 +111,6 @@ sudo bash fnos-nvenc.sh rollback  # 恢复当次基线
 
 ## 来源、许可与维护
 
-自有代码采用 [GPL-3.0-or-later](LICENSE)。第三方补丁保留其原声明及[来源记录](docs/source_and_evidence.md)；[固定公开构建输入](docs/build_sources.json)可核查。构建使用 `nonfree` 选项，产物不可再分发；仓库和 Release 只发布源码与说明，**不发布编译库、驱动或构建镜像**。参见 [FFmpeg 许可说明](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n8.1.1/LICENSE.md)。
+自有代码采用 [GPL-3.0-or-later](LICENSE)。第三方补丁保留其原声明及[来源记录](docs/source_and_evidence.md)；[固定公开构建输入](docs/build_sources.json)可核查。构建使用 `nonfree` 选项，产物不可再分发；仓库只公开源码与说明，**不发布编译库、驱动或构建镜像**。参见 [FFmpeg 许可说明](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n8.1.1/LICENSE.md)。
 
 菜单交互参考 [KIAUH](https://github.com/dw-0/kiauh)，实现由本工程维护。开发、[Figma 架构图](DESIGN.md#项目架构图)和证据导航见 [DESIGN](DESIGN.md)及[维护说明](docs/maintenance.md)。完整原版功能对等仍 **FAIL**；本项目不是厂商官方兼容承诺。
