@@ -45,15 +45,17 @@
 | [项目规则](AGENTS.md) | 参考：执行授权与维护约束 | 负责人 | 现行 |
 | [单库完成报告](docs/completion_report.md) | 参考：身份合同引用的原单库证据 | 工具、维护者 | 固定历史证据 |
 
-## 机器读取的固定材料
+## 目录与固定材料
+
+`docs/` 保存中文说明和配图，`scripts/` 保存运行模块，`tests/` 保存验证入口，`patches/` 保存正式补丁与许可。构建脚本与输入集中在 `build/`，程序读取的固定事实集中在 `metadata/`；它们随源码保留，不能按临时文件清理。
 
 | 文件 | 权威职责 |
 | --- | --- |
-| [runtime_profile.json](docs/runtime_profile.json) | 组件、依赖及候选身份合同 |
-| [build_sources.json](docs/build_sources.json)、[build_packages.txt](docs/build_packages.txt) | 固定公开来源和依赖版本 |
-| [materials.json](docs/materials.json) | 原样材料身份及整理代码的来源映射 |
-| [historical_checks.json](docs/historical_checks.json) | 必要旧检查计数与缺失 codec 名单 |
-| [installer_status.json](docs/installer_status.json) | 首版安装及开机验收门，不代表当前版本或实时状态 |
+| [metadata/runtime_profile.json](metadata/runtime_profile.json) | 组件、依赖及候选身份合同 |
+| [build/build_sources.json](build/build_sources.json)、[build/build_packages.txt](build/build_packages.txt) | 固定公开来源和依赖版本 |
+| [metadata/materials.json](metadata/materials.json) | 原样材料身份及整理代码的来源映射 |
+| [metadata/historical_checks.json](metadata/historical_checks.json) | 必要旧检查计数与缺失 codec 名单 |
+| [metadata/installer_status.json](metadata/installer_status.json) | 首版安装及开机验收门，不代表当前版本或实时状态 |
 
 `completion_report.md` 保留合同引用路径和证据正文，其中旧私人包已退役，当前操作以现行手册为准。TODO.md 和 DEVLOG.md 是 Git 忽略的本地行动与维护记录。旧过程报告和计划不再单独保留。
 

@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 
 def verify(root):
     root = root.resolve()
-    manifest = json.loads((root / "docs/materials.json").read_text(encoding="utf-8"))
+    manifest = json.loads((root / "metadata/materials.json").read_text(encoding="utf-8"))
     for item in manifest["files"]:
         relative = PurePosixPath(item["path"])
         if relative.is_absolute() or ".." in relative.parts or "\\" in item["path"]:
@@ -19,7 +19,7 @@ def verify(root):
         raw = path.read_bytes()
         if len(raw) != item["bytes"] or hashlib.sha256(raw).hexdigest() != item["sha256"]:
             raise ValueError(f"material identity mismatch: {relative}")
-    history = json.loads((root / "docs/historical_checks.json").read_text(encoding="utf-8"))
+    history = json.loads((root / "metadata/historical_checks.json").read_text(encoding="utf-8"))
     counts = {name: {"pass": sum(x.startswith("PASS ") for x in lines),
                      "fail": sum(x.startswith("FAIL ") for x in lines)}
               for name, lines in history["suites"].items()}

@@ -29,9 +29,9 @@
 | 固定候选库 | 16,516,408 字节，SHA256 `88e48674062ee5ef71864a2619324772bc856fec78c0d4793920fa7d4c15cd57` |
 | 已验证旧可用基线库 | SHA256 `3d7e7e241715fb6a3468a4d47d0fdaef3e6b79cecc3d3bb1f6d3118fac265367` |
 | 原单库控制器 | SHA256 `1250a7a648e9bc94709d250f11e11ee8b1447bdf3b70ff6356cb0762bd78f1cf` |
-| [installer_status.json](installer_status.json) | 保留 v0.1.0 首版有限安装／开机门；不是当前工具版本或实时状态 |
+| [installer_status.json](../metadata/installer_status.json) | 保留 v0.1.0 首版有限安装／开机门；不是当前工具版本或实时状态 |
 
-v0.1.1 收纳中文文档、直接克隆入口、Figma 架构图及现行安装、构建、恢复文件，退役旧过程和实验代码。运行逻辑、固定输入、候选库及[身份合同](runtime_profile.json)保持不变。
+v0.1.1 收纳中文文档、直接克隆入口、Figma 架构图及现行安装、构建、恢复文件，退役旧过程和实验代码。运行逻辑、固定输入、候选库及[身份合同](../metadata/runtime_profile.json)保持不变。
 
 按用户要求，GitHub 的 v0.1.0／v0.1.1 Release 已于 2026-10-11 删除，源码、Git 标签和原提交保留；安装不依赖 Release。`installer_status.json` 中的 `public_release` 是首版公开交付的历史标记，不表示当前存在 Release。后续文档提交不改写现场安装载荷。
 

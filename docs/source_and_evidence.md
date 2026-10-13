@@ -6,12 +6,12 @@
 
 | 材料 | 版本与身份来源 | 用途 |
 | --- | --- | --- |
-| FFmpeg | 8.1.1；源包、签名和公钥的 URL、大小及 SHA256 见[构建来源](build_sources.json) | 当前单库基础源码 |
+| FFmpeg | 8.1.1；源包、签名和公钥的 URL、大小及 SHA256 见[构建来源](../build/build_sources.json) | 当前单库基础源码 |
 | nv-codec-headers | 提交 `1889e62e2d35ff7aa9baca2bceb14f053785e6f1`，pkg-config 12.1.14.0 | NVENC API 12.1 接口 |
 | AC4 decoder/parser 补丁 | [解码补丁](../patches/ac4_decoder.patch)、[parser 类型修正](../patches/ac4_parser_type.patch) | 保留声明、应用顺序和固定身份的正式输入 |
-| 构建环境 | 固定 Debian 镜像 digest、snapshot 和[286 项依赖版本](build_packages.txt) | 从公开来源重新准备 Docker 环境 |
-| 整理代码与私人基线库 | [材料清单](materials.json)保存移交身份和代码来源映射 | 从原 Solis_Pvescript 试验精选移交的维护内容 |
-| 当前运行身份 | [运行合同](runtime_profile.json)及其引用的[单库完成报告](completion_report.md) | 绑定组件、依赖、候选及原单库有限证据 |
+| 构建环境 | 固定 Debian 镜像 digest、snapshot 和[286 项依赖版本](../build/build_packages.txt) | 从公开来源重新准备 Docker 环境 |
+| 整理代码与私人基线库 | [材料清单](../metadata/materials.json)保存移交身份和代码来源映射 | 从原 Solis_Pvescript 试验精选移交的维护内容 |
+| 当前运行身份 | [运行合同](../metadata/runtime_profile.json)及其引用的[单库完成报告](completion_report.md) | 绑定组件、依赖、候选及原单库有限证据 |
 
 FFmpeg 发布签名曾在移交和公开构建中核对，指纹为 `FCF986EA15E6E293A5644F10B4322F04D67658D8`。这是当时的结果；每次公开构建仍须验证下载大小、哈希与签名。
 
@@ -31,7 +31,7 @@ FFmpeg 许可原文见 [8.1.1 LICENSE.md](https://raw.githubusercontent.com/FFmp
 
 ## 必要旧结论
 
-以下为截至 2026-10-10 的既有有限检查，保留结论以免误判，未在文档整理中重跑。计数及缺失 codec 名单见[检查记录](historical_checks.json)。
+以下为截至 2026-10-10 的既有有限检查，保留结论以免误判，未在文档整理中重跑。计数及缺失 codec 名单见[检查记录](../metadata/historical_checks.json)。
 
 | 检查 | 保留结论 | 限制 |
 | --- | --- | --- |

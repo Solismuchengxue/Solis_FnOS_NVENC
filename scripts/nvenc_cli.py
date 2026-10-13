@@ -70,8 +70,8 @@ def menu(reader=input,writer=print,dispatch=None):
         except (RuntimeError,OSError,ValueError,KeyError,subprocess.SubprocessError) as error:writer('STOP：'+str(error))
 
 def payload_files(project):
-    files=['fnos-nvenc.sh','LICENSE','docs/runtime_profile.json','docs/build_sources.json',
-           'docs/build_packages.txt','docs/installer_status.json','docs/quick_start.md',
+    files=['fnos-nvenc.sh','LICENSE','metadata/runtime_profile.json','build/build_sources.json',
+           'build/build_packages.txt','metadata/installer_status.json','docs/quick_start.md',
            'patches/COPYING.GPLv3','patches/ac4_decoder.patch','patches/ac4_parser_type.patch',
            'build/prepare_public_environment.sh','build/run_public_build.sh','tests/test_runtime_files.sh','scripts/runtime_files.sh']
     files += ['scripts/'+name for name in ('nvenc_cli.py','nvenc_build.py','nvenc_install.py','nvenc_bootstrap.py',
@@ -167,8 +167,8 @@ def execute(args):
     from nvenc_autostart import AutoController,ManagedHost,AUTO_DROPIN,TRIAL
     from nvenc_install import Installer,atomic_json,assert_no_consumers,safe
     from nvenc_build import build
-    profile=json.loads((PROJECT/'docs/runtime_profile.json').read_text())
-    acceptance=json.loads((PROJECT/'docs/installer_status.json').read_text());host=ManagedHost()
+    profile=json.loads((PROJECT/'metadata/runtime_profile.json').read_text())
+    acceptance=json.loads((PROJECT/'metadata/installer_status.json').read_text());host=ManagedHost()
     if args.action=='build':
         folder=args.workdir or DATA/'builds'/('build-'+uuid.uuid4().hex)
         return {'bundle':str(build(PROJECT,folder))}

@@ -71,7 +71,7 @@
       "license": "GNU GPLv3 verbatim license text"
     },
     {
-      "path": "docs/build_packages.txt",
+      "path": "build/build_packages.txt",
       "bytes": 7993,
       "sha256": "254308a64ba66d5b0292b62d4eab774ceefdd644c8fae5394dbb77d242593f3b",
       "origin": "nvenc-stage1-ac4/evidence/build-packages.txt",

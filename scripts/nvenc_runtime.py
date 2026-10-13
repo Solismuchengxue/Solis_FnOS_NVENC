@@ -318,7 +318,7 @@ def main():
     args=parser.parse_args()
     if sys.platform!='linux' or os.geteuid()!=0:raise Refused("请在 NAS 使用 sudo；本地验证只运行测试文件")
     project=Path(__file__).resolve().parents[1]
-    p=json.loads((project/'docs/runtime_profile.json').read_text())
+    p=json.loads((project/'metadata/runtime_profile.json').read_text())
     c=Controller(Path('/'),project/'artifacts/runtime_bundle',p,LinuxHost())
     if args.action in ('deploy','rollback'):
         if not p['nas_tool_verified']:

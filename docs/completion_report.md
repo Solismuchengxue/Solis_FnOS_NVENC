@@ -22,7 +22,7 @@
 | 本包精确临时目录、消费者和试用合同收尾 | PASS，21 文件 / 152,227 字节 |
 | 共享 profile、私人包与 NAS 正式工具说明 | PASS，仅开放已验证组合入口 |
 
-NAS 正式入口 `/opt/solis-fnos-nvenc/tool/fnos-nvenc.sh` 提供 check/deploy/status/rollback。适用组合为 fnOS 1.2.0701、Debian 12 / glibc 2.36、GRID P4-4Q、驱动 535.309.01，以及 [runtime_profile](runtime_profile.json) 绑定的 13 个保护文件和 50 项外部依赖。未知版本或身份漂移返回 STOP。普通说明见 [简单使用说明](quick_start.md)。
+NAS 正式入口 `/opt/solis-fnos-nvenc/tool/fnos-nvenc.sh` 提供 check/deploy/status/rollback。适用组合为 fnOS 1.2.0701、Debian 12 / glibc 2.36、GRID P4-4Q、驱动 535.309.01，以及 [runtime_profile](../metadata/runtime_profile.json) 绑定的 13 个保护文件和 50 项外部依赖。未知版本或身份漂移返回 STOP。普通说明见 [简单使用说明](quick_start.md)。
 
 run1 保持原字节，仅一个 libavcodec.so.62，16,516,408 字节，SHA256 `88e48674062ee5ef71864a2619324772bc856fec78c0d4793920fa7d4c15cd57`。固定上游、补丁、构建镜像未改变，未重建；AC4 多库实验未加入。完整本地包为 Git 忽略的 `artifacts/private_tool-20261010-01a12578.zip`，按包内 manifest 全项核对；只适用于所有者私人保存，nonfree/unredistributable 限制继续有效。
 

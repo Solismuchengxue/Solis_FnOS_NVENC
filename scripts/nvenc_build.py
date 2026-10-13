@@ -73,11 +73,11 @@ def build(project, work):
     if platform.system()!='Linux':raise BuildRefused('请在已有 Linux Docker 环境构建')
     project=safe_path(project);work=safe_path(work)
     if work.exists():raise BuildRefused('构建输出目录已存在，保留并停止')
-    manifest=json.loads((project/'docs/build_sources.json').read_text())
-    profile=json.loads((project/'docs/runtime_profile.json').read_text())
+    manifest=json.loads((project/'build/build_sources.json').read_text())
+    profile=json.loads((project/'metadata/runtime_profile.json').read_text())
     if manifest['candidate_sha256']!=profile['candidate_sha256']:
         raise BuildRefused('构建合同与运行合同不一致')
-    if digest(project/'docs/build_packages.txt')!=manifest['package_list_sha256']:
+    if digest(project/'build/build_packages.txt')!=manifest['package_list_sha256']:
         raise BuildRefused('固定包清单身份不符')
     docker=['docker','--host','unix:///var/run/docker.sock']
     def call(args,log=None,timeout=1800):
@@ -131,7 +131,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('project');parser.add_argument('new_output');parser.add_argument('--sources-only',action='store_true')
     args=parser.parse_args()
     try:
-        if args.sources_only:fetch_sources(json.loads((Path(args.project)/'docs/build_sources.json').read_text()),Path(args.new_output))
+        if args.sources_only:fetch_sources(json.loads((Path(args.project)/'build/build_sources.json').read_text()),Path(args.new_output))
         else:build(args.project,args.new_output)
     except (BuildRefused,OSError,ValueError,subprocess.SubprocessError) as error:
         print('STOP：'+str(error));raise SystemExit(1)

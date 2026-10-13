@@ -40,9 +40,10 @@ class BuildTests(unittest.TestCase):
             with self.assertRaises(BuildRefused):check_build_pair(a,b,hashlib.sha256(b'new').hexdigest(),3)
     def test_source_manifest_bound_to_existing_profile(self):
         root=Path(__file__).resolve().parents[1]
-        m=json.loads((root/'docs/build_sources.json').read_text())
-        p=json.loads((root/'docs/runtime_profile.json').read_text())
+        m=json.loads((root/'build/build_sources.json').read_text())
+        p=json.loads((root/'metadata/runtime_profile.json').read_text())
         self.assertEqual(m['candidate_sha256'],p['candidate_sha256'])
+        self.assertEqual(hashlib.sha256((root/'build/build_packages.txt').read_bytes()).hexdigest(),m['package_list_sha256'])
         self.assertEqual(len(m['base_image'].split('sha256:')[1]),64)
 
 if __name__=='__main__':unittest.main()

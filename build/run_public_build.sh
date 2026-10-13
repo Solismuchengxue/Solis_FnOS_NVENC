@@ -5,7 +5,7 @@ export LC_ALL=C TZ=UTC SOURCE_DATE_EPOCH=0
 test ! -e /build
 mkdir /build
 dpkg-query -W -f='${binary:Package}\t${Version}\n' | sort > /export/installed_packages.txt
-diff -u <(sort /input/docs/build_packages.txt) /export/installed_packages.txt
+diff -u <(sort /input/build/build_packages.txt) /export/installed_packages.txt
 bash /input/scripts/build_libavcodec.sh /sources /input/patches /build/output > /export/build.log 2>&1
 library=/build/output/candidate-lib/libavcodec.so.62
 cp "$library" /export/libavcodec.so.62

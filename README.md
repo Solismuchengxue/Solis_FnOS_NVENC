@@ -15,7 +15,7 @@
 | fnOS | 1.2.0701，Debian 12，x86_64，glibc 2.36 |
 | GPU | GRID P4-4Q |
 | NVIDIA 驱动 | R535，535.309.01，NVENC API 12.1 |
-| 影视组件与依赖 | 与[运行身份合同](docs/runtime_profile.json)中的 13 项保护文件、50 项外部依赖一致 |
+| 影视组件与依赖 | 与[运行身份合同](metadata/runtime_profile.json)中的 13 项保护文件、50 项外部依赖一致 |
 | 宿主工具 | Git、Bash、Python 3.11+、Docker、sudo、systemd、readelf、ldd、nvidia-smi |
 | 构建资源 | 至少 8 GiB 可用空间；容器资源上限为 2 CPU、4 GiB 内存 |
 | 首次构建网络 | 能访问 FFmpeg、GitHub、Docker Hub 和 Debian snapshot |
