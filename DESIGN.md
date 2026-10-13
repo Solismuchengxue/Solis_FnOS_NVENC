@@ -14,7 +14,7 @@
 
 公开构建在宿主下载并校验输入，在 Docker 内准备依赖和编译。候选库必须与固定身份一致，再经安装清单接入原生影视。工具版本用普通 JSON 指针原子切换，不使用符号链接。
 
-启动检查失败时清除自有注入；每次开机独立保存恢复点。卸载先核对恢复、文件身份和消费者，再移除自建文件。完整规则见[维护说明](docs/maintenance.md)。
+永久启用同时要求当前运行合同与安装／服务启动验收通过；未验收组合只接受有效的有界试用。启动检查失败时清除自有注入，每次开机独立保存恢复点。卸载先核对恢复、文件身份和消费者，再移除自建文件。完整规则见[维护说明](docs/maintenance.md)。
 
 ## 项目架构图
 
@@ -39,7 +39,7 @@
 | [README](README.md) | 入门与操作：首次安装、播放、更新、暂停和卸载 | 用户 | 现行 |
 | [快速使用说明](docs/quick_start.md) | 操作：随工具安装的离线速查 | 已安装用户 | 现行 |
 | [维护说明](docs/maintenance.md) | 操作：验证、故障恢复、材料管理和文档约定 | 维护者 | 现行 |
-| [验收报告](docs/installer_report.md) | 参考：各版本有限验证、现场记录、已知问题和缺口 | 用户、维护者 | 截至 2026-10-11 |
+| [验收报告](docs/installer_report.md) | 参考：各版本有限验证、现场记录、已知问题和缺口 | 用户、维护者 | 截至 2026-10-13 |
 | [来源与边界](docs/source_and_evidence.md) | 参考：输入来源、许可、必要旧结论及证据限制 | 维护者 | 现行 |
 | [项目蓝图](docs/blueprint.md) | 原理说明：唯一项目意图、范围与非目标 | 用户、负责人 | 现行 |
 | [项目规则](AGENTS.md) | 参考：执行授权与维护约束 | 负责人 | 现行 |
@@ -55,8 +55,8 @@
 | [build/build_sources.json](build/build_sources.json)、[build/build_packages.txt](build/build_packages.txt) | 固定公开来源和依赖版本 |
 | [metadata/materials.json](metadata/materials.json) | 原样材料身份及整理代码的来源映射 |
 | [metadata/historical_checks.json](metadata/historical_checks.json) | 必要旧检查计数与缺失 codec 名单 |
-| [metadata/installer_status.json](metadata/installer_status.json) | 首版安装及开机验收门，不代表当前版本或实时状态 |
+| [metadata/installer_status.json](metadata/installer_status.json) | 当前合同的有限安装及服务启动验收门，不代表实时状态；整机重启结论单列 |
 
-`completion_report.md` 保留合同引用路径和证据正文，其中旧私人包已退役，当前操作以现行手册为准。TODO.md 和 DEVLOG.md 是 Git 忽略的本地行动与维护记录。旧过程报告和计划不再单独保留。
+`completion_report.md` 保留旧合同及恢复材料引用的路径和证据正文，其中旧私人包已退役；当前合同引用安装器报告，操作以现行手册为准。TODO.md 和 DEVLOG.md 是 Git 忽略的本地行动与维护记录。旧过程报告和计划不再单独保留。
 
 架构、接口、交付边界或文档职责变化时更新本页；验证事实进入验收报告，项目意图变化才更新蓝图。写作约定见[维护说明](docs/maintenance.md#中文文档维护约定)。

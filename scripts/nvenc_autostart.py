@@ -115,7 +115,8 @@ class AutoController(Controller):
         return boot==trial.get('initial_boot') or (trial.get('allow_one_reboot') is True and len(set(seen+[boot]))<=2 and trial.get('initial_boot') in seen)
 
     def gate(self,state=None):
-        if not self.verified and not self.trial_valid(state):raise Refused('新安装与开机流程尚未现场验收；只允许本轮有界试用合同')
+        if self.verified and self.p.get('nas_tool_verified') is True:return
+        if not self.trial_valid(state):raise Refused('当前运行合同或安装与开机流程尚未现场验收；只允许本轮有界试用合同')
 
     def clear_environment(self):
         path=self.path(ENV_FILE)
@@ -198,7 +199,7 @@ class AutoController(Controller):
         loaded=service['active'] and service['loaded']==self.library and self.identity(self.library)['sha256']==self.p['candidate_sha256']
         return {'enabled':bool(state and state.get('enabled') and hook),'loaded':bool(loaded),
             'phase':state['phase'] if state else 'not_managed','startup':state.get('startup','NOT_VERIFIED') if state else 'NOT_VERIFIED',
-            'autostart_verified':self.verified,'transcode':'NOT_VERIFIED','boot':self.host.info()['boot']}
+            'autostart_verified':bool(self.verified and self.p.get('nas_tool_verified') is True),'transcode':'NOT_VERIFIED','boot':self.host.info()['boot']}
 
     def enable(self):
         with self.lock():

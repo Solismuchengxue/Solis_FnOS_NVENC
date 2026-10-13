@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "id": "mediasrv-20261010-r535-api121-run1",
+  "id": "mediasrv-20261013-fnos120800-r535-api121",
   "nas_tool_verified": true,
   "dependencies": {
     "/usr/trim/lib/mediasrv/lib/libswresample.so.6": "69323a29a9757170660dcab917814603babc0422a7c60c0e9c3d57ff2176b5e2",
@@ -70,30 +70,28 @@
     "/usr/trim/lib/mediasrv/lib/libavformat.so.62": "3bc156271f1dd15fb9a615f6cc15ee18f868bb3fa531d9433c0c26cdf6a067f3",
     "/usr/trim/lib/mediasrv/lib/libavutil.so.60": "6a52230b030c65908fe0aba2e98e363f976b3d50c7f63f97c9d4b1495de2dfc9",
     "/usr/trim/lib/mediasrv/lib/libswresample.so.6": "69323a29a9757170660dcab917814603babc0422a7c60c0e9c3d57ff2176b5e2",
-    "/usr/trim/bin/mediasrv": "4818df49ed4b0e5cde263a8144440f037ebe6ba1f8f60c99ee50fa87d5cf3359",
+    "/usr/trim/bin/mediasrv": "0e9f912cfbc79eea4876d7e3ed1605461c091047fe718a26f60d9b3059983cf0",
     "/usr/local/apps/@appcenter/trim.media/trim-media": "65ca8f8706798b3f9c59837e5ecd8f231c65e1588214fc9fefeaed1b0d3ca5ba",
-    "/usr/trim/etc/version": "f67a48e856af7bf208547b1f7f741849478c2e761b712fb9ef9574711af16292",
+    "/usr/trim/etc/version": "be27f8b7c2410a43d0225416407510ba38abae8f0d450b2e5a4d8d50e946e15e",
     "/usr/lib/x86_64-linux-gnu/libnvidia-encode.so.535.309.01": "a613d647f2ded3c2c6c44414ac31368e5e3faa13fab14d85f168452608b04d6e",
     "/usr/lib/x86_64-linux-gnu/libcuda.so.535.309.01": "e649879a93439c72083bfc255d87727dcea196413e47152c8ee96ba467935d86",
     "/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.309.01": "e1730ea31bd9ed2bac1f7406f705ea91b966949d7a13f6163379d88e4bdc0867"
   },
   "official_dir": "/usr/trim/lib/mediasrv/lib",
   "allowed_baseline": {
-    "/usr/trim/lib/mediasrv/lib/libavcodec.so.62": "0e58e0cdf83e906728a61143fbabf008f63f9766f4d9b4626fb63874115ad959",
-    "/opt/solis-fnos-nvenc/ffmpeg-8.1.1-api12.1/candidate-lib/libavcodec.so.62": "3d7e7e241715fb6a3468a4d47d0fdaef3e6b79cecc3d3bb1f6d3118fac265367"
+    "/usr/trim/lib/mediasrv/lib/libavcodec.so.62": "0e58e0cdf83e906728a61143fbabf008f63f9766f4d9b4626fb63874115ad959"
   },
-  "allowed_dropins": {
-    "/run/systemd/system/mediasrv.service.d/90-solis-nvenc-compat.conf": "89cdc6f153652484656a1b730f7e557660692bc90e8c335361328ace17a9fc60"
-  },
-  "evidence": "docs/completion_report.md",
-  "scope": "known fnOS 1.2.0701/R535/P4 application/dependency combination; single libavcodec; bounded tool trial, not arbitrary upgrade acceptance",
-  "fnos_marketing_version": "1.2.0701",
-  "kernel_observed": "6.18.18.c1107-trim",
+  "allowed_dropins": {},
+  "evidence": "docs/installer_report.md",
+  "scope": "仅限 fnOS 1.2.0800／GRID P4-4Q／R535 535.309.01 的已核对组件与依赖；自生成 Main8 SDR 单路 720p、人工一次跳转与声音确认，不代表其他格式、硬件解码或长期稳定性",
+  "fnos_marketing_version": "1.2.0800",
+  "kernel_observed": "6.18.18.c1126-trim",
   "verification": {
-    "date": "2026-10-10",
-    "authorization": "01a12578-a389-7d61-82b4-4bcd1e2d6d79",
+    "date": "2026-10-13",
+    "authorization": "用户批准的 fnOS 1.2.0800 升级适配工作包",
     "tool_deploy_status_rollback": "PASS",
     "ordinary_native_720p_one_seek": "PASS",
+    "native_process_binding": "PASS",
     "human_audio": "PASS",
     "actual_baseline_restore": "PASS",
     "protected_files": "PASS",
@@ -101,8 +99,8 @@
     "other_formats": "NOT_VERIFIED",
     "long_term": "NOT_VERIFIED",
     "nas_reboot": "NOT_VERIFIED",
-    "evidence": "docs/completion_report.md",
-    "native_process_binding": "PASS",
-    "supplemental_proof_sha256": "088a80c77ea5b7b7b17fb55cb72fa7116f75c76ef4bebf0a892086961e12e302"
+    "evidence": "docs/installer_report.md",
+    "supplemental_proof_sha256": "0ae15138ebe70a622467829d57fac517f3d1c83821d9fc267442c2b0e469286f",
+    "test_scope": "自生成 Main8 SDR；GPU H.264 1280×720；用户手动播放与跳转、人工音画确认；同一开机实际回退"
   }
 }

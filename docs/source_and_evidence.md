@@ -11,7 +11,7 @@
 | AC4 decoder/parser 补丁 | [解码补丁](../patches/ac4_decoder.patch)、[parser 类型修正](../patches/ac4_parser_type.patch) | 保留声明、应用顺序和固定身份的正式输入 |
 | 构建环境 | 固定 Debian 镜像 digest、snapshot 和[286 项依赖版本](../build/build_packages.txt) | 从公开来源重新准备 Docker 环境 |
 | 整理代码与私人基线库 | [材料清单](../metadata/materials.json)保存移交身份和代码来源映射 | 从原 Solis_Pvescript 试验精选移交的维护内容 |
-| 当前运行身份 | [运行合同](../metadata/runtime_profile.json)及其引用的[单库完成报告](completion_report.md) | 绑定组件、依赖、候选及原单库有限证据 |
+| 当前运行身份 | [运行合同](../metadata/runtime_profile.json)及其引用的[安装器报告](installer_report.md) | 绑定当前组件、依赖、候选及本轮有限证据；[单库完成报告](completion_report.md)仍保留为旧合同和恢复材料的固定证据 |
 
 FFmpeg 发布签名曾在移交和公开构建中核对，指纹为 `FCF986EA15E6E293A5644F10B4322F04D67658D8`。这是当时的结果；每次公开构建仍须验证下载大小、哈希与签名。
 

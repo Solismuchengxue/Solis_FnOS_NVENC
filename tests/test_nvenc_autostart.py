@@ -2,11 +2,14 @@
 import json
 from pathlib import Path
 import sys
+import time
 import unittest
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 import test_nvenc_runtime as legacy
-from nvenc_autostart import AutoController, AUTO_DROPIN, ENV_FILE, AUTO_STATE
+from nvenc_autostart import AutoController, AUTO_DROPIN, ENV_FILE, AUTO_STATE, TRIAL
+from nvenc_install import atomic_json
+from nvenc_runtime import Refused, sha
 
 class AutoTests(legacy.RuntimeTests):
     def setUp(self):
@@ -72,6 +75,44 @@ class AutoTests(legacy.RuntimeTests):
         self.c.verified=False
         with self.assertRaises(RuntimeError):self.c.enable()
         self.assertFalse((self.root/AUTO_DROPIN.lstrip('/')).exists())
+    def test_old_installer_acceptance_cannot_enable_unverified_profile(self):
+        self.profile['nas_tool_verified']=False
+        with self.assertRaises(Refused):self.c.enable()
+        self.assertFalse((self.root/AUTO_DROPIN.lstrip('/')).exists())
+        self.assertFalse((self.root/AUTO_STATE.lstrip('/')).exists())
+        self.assertEqual(self.host.restarts,0)
+    def test_unverified_profile_clears_startup_injection_and_can_restore(self):
+        self.c.enable();restarts=self.host.restarts
+        self.profile['nas_tool_verified']=False
+        self.assertEqual(self.c.boot_prepare()['startup'],'SKIPPED')
+        self.assertEqual((self.root/ENV_FILE.lstrip('/')).read_bytes(),b'')
+        self.assertTrue((self.root/AUTO_DROPIN.lstrip('/')).is_file())
+        self.assertEqual(self.host.restarts,restarts)
+        self.assertEqual(self.c.disable()['operation'],'RESTORED')
+        self.assertEqual(self.host.loaded,'/official/libavcodec.so.62')
+    def test_unverified_profile_status_does_not_reuse_installer_acceptance(self):
+        self.profile['nas_tool_verified']=False
+        self.assertFalse(self.c.status()['autostart_verified'])
+    def test_unverified_combination_requires_bound_unexpired_trial(self):
+        self.profile['nas_tool_verified']=False;self.c.verified=False
+        machine=self.root/'etc/machine-id';machine.parent.mkdir(parents=True,exist_ok=True)
+        machine.write_bytes(b'local-test-machine')
+        trial={'schema':1,'authorization':'user-approved-ssh-installer-v0.1.0',
+               'profile_sha256':sha(json.dumps(self.profile,sort_keys=True).encode()),
+               'machine_sha256':sha(b'local-test-machine'),'expires_at':time.time()+300,
+               'initial_boot':'boot-current','allow_one_reboot':False}
+        path=self.root/TRIAL.lstrip('/')
+        for field,value in (('profile_sha256','0'*64),('machine_sha256','0'*64),
+                            ('initial_boot','another-boot'),('expires_at',time.time()-1)):
+            with self.subTest(field=field):
+                invalid={**trial,field:value};atomic_json(path,invalid)
+                with self.assertRaises(Refused):self.c.enable()
+                self.assertFalse((self.root/AUTO_DROPIN.lstrip('/')).exists())
+                self.assertEqual(self.host.restarts,0)
+        atomic_json(path,trial)
+        self.assertEqual(self.c.enable()['operation'],'AUTO_ENABLED')
+        self.assertEqual(self.c.disable()['operation'],'RESTORED')
+        self.assertEqual(self.host.loaded,'/official/libavcodec.so.62')
     def test_startup_hook_keeps_outer_transaction_reserved(self):
         observed=[]
         original=self.host.restart

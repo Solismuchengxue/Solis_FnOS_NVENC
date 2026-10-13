@@ -1,8 +1,10 @@
 {
   "schema": 1,
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "profile": "mediasrv-20261013-fnos120800-r535-api121",
   "nas_installer_verified": true,
   "autostart_verified": true,
-  "public_release": true,
-  "evidence": "docs/installer_report.md"
+  "public_release": false,
+  "evidence": "docs/installer_report.md",
+  "verification_scope": "本轮同一开机安装、服务启动检查和实际映射、暂停恢复、上一版指针；整机重启仍未验证"
 }
