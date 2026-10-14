@@ -38,6 +38,8 @@ def parser():
     p.add_argument('--idle-confirmed',action='store_true',help='调用者已当次确认所有播放和转码均退出')
     p.add_argument('--json',action='store_true',help='只输出结构化结果')
     p.add_argument('--trial-contract',type=Path,help=argparse.SUPPRESS)
+    p.add_argument('--migration-evidence',type=Path,help=argparse.SUPPRESS)
+    p.add_argument('--migration-sha256',help=argparse.SUPPRESS)
     p.add_argument('--audio-confirmed',action='store_true',help='本次 720p/跳转后已人工确认声音正常、无明显不同步')
     return p
 
@@ -50,9 +52,10 @@ def confirm_idle(already,stream=None):
 
 def action_argv(args):
     values=[args.action]
-    for name in ('bundle','workdir','trial_contract'):
+    for name in ('bundle','workdir','trial_contract','migration_evidence'):
         value=getattr(args,name,None)
         if value is not None:values.extend(['--'+name.replace('_','-'),value.as_posix()])
+    if args.migration_sha256 is not None:values.extend(['--migration-sha256',args.migration_sha256])
     for name in ('idle_confirmed','json','audio_confirmed'):
         if getattr(args,name,False):values.append('--'+name.replace('_','-'))
     return values
@@ -75,7 +78,7 @@ def payload_files(project):
            'patches/COPYING.GPLv3','patches/ac4_decoder.patch','patches/ac4_parser_type.patch',
            'build/prepare_public_environment.sh','build/run_public_build.sh','tests/test_runtime_files.sh','scripts/runtime_files.sh']
     files += ['scripts/'+name for name in ('nvenc_cli.py','nvenc_build.py','nvenc_install.py','nvenc_bootstrap.py',
-              'nvenc_autostart.py','nvenc_runtime.py','build_libavcodec.sh','inspect_libavcodec.c')]
+              'nvenc_autostart.py','nvenc_runtime.py','nvenc_migrate.py','build_libavcodec.sh','inspect_libavcodec.c')]
     return files
 
 def choose_bundle(args,profile,build_if_missing=False):
@@ -160,6 +163,8 @@ def playback_receipt(controller,audio=False):
     return {'operation':'BOUNDED_PLAYBACK_RECORDED','report':str(report),'evidence':result}
 
 def execute(args):
+    if (args.migration_evidence is not None or args.migration_sha256 is not None) and args.action!='update-tool':
+        raise RuntimeError('迁移证据只供更新／修复工具使用')
     if sys.platform!='linux':raise RuntimeError('真实动作只支持 Linux；Windows 可查看帮助或运行本地测试')
     if os.geteuid()!=0:
         if not sys.stdin.isatty():raise RuntimeError('需要标准 SSH 终端 sudo 提权；请在终端运行此命令')
@@ -242,7 +247,14 @@ def execute(args):
             raise Refused('旧临时补丁仍启用，请先 rollback 再安装新工具')
         with auto.lock():
             auto.require_closed_transaction()
+            migration=None
+            if args.action=='update-tool':
+                require_paused(auto)
+                from nvenc_migrate import migrate_existing
+                migration=migrate_existing(Installer(),auto,verify_tool_recovery,assert_no_consumers,
+                                           args.migration_evidence,args.migration_sha256)
             result=install_tool(bundle)
+            if migration is not None:result['migration']=migration
         if args.action=='install':
             try:result['patch']=auto.enable()
             except Exception:
@@ -374,6 +386,10 @@ def show(result,structured=False):
             print('启动检查：'+patch['startup'])
     for name,label in (('release','工具版本'),('bundle','构建材料'),('report','证据记录'),('input_preserved','本轮安装输入')):
         if name in result:print(label+'：'+str(result[name]))
+    if 'migration' in result:
+        migration=result['migration']
+        print('既有材料归属核对：登记 '+str(len(migration['accepted']))+' 项；保留待核实 '+str(len(migration['remaining']))+' 项。')
+        for item in migration['remaining']:print('保留：'+item['path']+'（'+item['reason']+'）')
     print('完整原版功能对等仍未通过；其他格式与长期稳定性未验证。')
 
 if __name__=='__main__':

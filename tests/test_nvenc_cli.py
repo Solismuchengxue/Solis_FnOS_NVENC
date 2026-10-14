@@ -33,6 +33,13 @@ class MenuTests(unittest.TestCase):
     def test_menu_sudo_preserves_selected_action(self):
         args=parser().parse_args(['install','--bundle','/safe/bundle','--idle-confirmed'])
         self.assertEqual(action_argv(args),['install','--bundle','/safe/bundle','--idle-confirmed'])
+    def test_update_preserves_explicit_migration_evidence_and_digest(self):
+        args=parser().parse_args(['update-tool','--migration-evidence','/reviewed/evidence.json','--migration-sha256','a'*64])
+        self.assertEqual(action_argv(args),['update-tool','--migration-evidence','/reviewed/evidence.json','--migration-sha256','a'*64])
+    def test_migration_evidence_is_refused_for_other_actions_before_execution(self):
+        for action in ('menu','install','uninstall-tool','status'):
+            with self.subTest(action=action),self.assertRaisesRegex(RuntimeError,'只供'):
+                execute(parser().parse_args([action,'--migration-evidence','/reviewed/evidence.json']))
     def test_unknown_or_unlicensed_status_is_not_accepted(self):
         self.assertTrue(licensed('    License Status : Licensed (Expiry: omitted)'))
         self.assertFalse(licensed('    License Status : Unlicensed'))

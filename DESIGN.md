@@ -9,6 +9,7 @@
 | [fnos-nvenc.sh](fnos-nvenc.sh)、[nvenc_cli.py](scripts/nvenc_cli.py) | SSH 编号菜单、命令行兼容与标准 sudo 入口 |
 | [nvenc_build.py](scripts/nvenc_build.py)、[容器构建入口](build/run_public_build.sh) | 固定公开来源校验、Docker 双构建及候选身份门 |
 | [nvenc_install.py](scripts/nvenc_install.py)、[nvenc_bootstrap.py](scripts/nvenc_bootstrap.py) | 版本目录、文件清单、原子指针及执行前校验 |
+| [nvenc_migrate.py](scripts/nvenc_migrate.py) | 更新时核实既有材料，登记原归属清单，列明保留的未知材料 |
 | [nvenc_autostart.py](scripts/nvenc_autostart.py) | 每次服务启动检查、本次开机恢复点、事务阶段及锁交接 |
 | [nvenc_runtime.py](scripts/nvenc_runtime.py) | 组件检查、单库接入、实际映射核对、消费者检查和回退 |
 

@@ -173,7 +173,7 @@ class Installer:
         path=safe(path)
         try:name='/'+path.relative_to(self.root).as_posix()
         except ValueError as error:raise InstallRefused('材料目录越界') from error
-        if not re.fullmatch(r'/vol1/1000/Solis_FnOS_NVENC/tmp/install-input-[a-f0-9]{32}|/opt/solis-fnos-nvenc/backups/legacy-[a-f0-9]{16}',name):
+        if not re.fullmatch(r'/vol1/1000/Solis_FnOS_NVENC/tmp/install-input-[a-f0-9]{32}|/opt/solis-fnos-nvenc/backups/legacy-[a-f0-9]{16}|/var/lib/solis-fnos-nvenc/(?:upgrade(?:-installer)?-[0-9]{8}-[a-f0-9]{10}|acceptance-v[0-9]{3}-[0-9]{8}-[a-f0-9-]{8,36})',name):
             raise InstallRefused('目录不属于安装器生成材料：'+name)
         return name
 
@@ -229,7 +229,8 @@ class Installer:
         if refuse_staging and any(p.name.startswith('.staging-') for p in self.base.iterdir()):
             raise InstallRefused('存在未完成安装目录，保留并停止')
         allowed={'owner.json','current.json','previous.json','releases','runner.sh','bootstrap.py','bootstrap.json'}
-        if any(p.name not in allowed and not p.name.startswith('.staging-') for p in self.base.iterdir()):raise InstallRefused('工具根含未知材料')
+        unknown=[str(p) for p in self.base.iterdir() if p.name not in allowed and not p.name.startswith('.staging-')]
+        if unknown:raise InstallRefused('工具根含未知材料，保留：'+', '.join(sorted(unknown)))
 
     def current(self):
         self.known_base();pointer=self.secure(self.base/'current.json')
@@ -245,7 +246,9 @@ class Installer:
         if manifest['release']!=release or sha((directory/'manifest.json').read_bytes())!=value['manifest_sha256']:
             raise InstallRefused('安装版本清单身份不符')
         actual=inventory(directory);actual.pop('manifest.json',None)
-        if actual!=manifest['files']:raise InstallRefused('安装文件漂移或多出未知材料')
+        if actual!=manifest['files']:
+            names=sorted(name for name in set(actual)|set(manifest['files']) if actual.get(name)!=manifest['files'].get(name))
+            raise InstallRefused('安装文件漂移或多出未知材料，保留：'+', '.join(str(directory/name) for name in names))
         for path in directory.rglob('*'):self.secure(path)
         if (self.base/'bootstrap.json').exists():
             expected=json.loads(self.secure(self.base/'bootstrap.json').read_text())
@@ -253,20 +256,24 @@ class Installer:
             for name in expected:self.secure(self.base/name)
         return value
 
-    def adopt_legacy(self):
-        # Required identity gates; retain the old tree for rollback until uninstall.
+    def legacy_inventory(self,path):
+        # 四项固定身份不变；两份旧说明由原备份指纹绑定，不用新版文档替代。
         required=LEGACY_REQUIRED
-        actual=inventory(self.base)
+        actual=inventory(path)
         for name,expected in required.items():
-            if actual.get(name,{}).get('sha256')!=expected:raise InstallRefused('已有工具身份未知，保留并停止')
-        allowed=set(required)|{'docs/quick_start.md','artifacts/runtime_bundle/identity.json'}
-        if set(actual)-allowed:raise InstallRefused('旧工具含未知材料，保留并停止')
-        directories={self.base}
+            if actual.get(name,{}).get('sha256')!=expected:raise InstallRefused('已有工具身份未知，保留并停止：'+str(path/name))
+        allowed=set(required)|{'docs/quick_start.md','docs/completion_report.md','artifacts/runtime_bundle/identity.json'}
+        if set(actual)-allowed:raise InstallRefused('旧工具含未知材料，保留并停止：'+', '.join(str(path/name) for name in sorted(set(actual)-allowed)))
+        directories={path}
         for name in actual:
-            directories.update(p for p in (self.base/name).parents if p==self.base or self.base in p.parents)
-        if any(p.is_dir() and p not in directories for p in self.base.rglob('*')):
+            directories.update(p for p in (path/name).parents if p==path or path in p.parents)
+        if any(p.is_dir() and p not in directories for p in path.rglob('*')):
             raise InstallRefused('旧工具含未知目录，保留并停止')
-        for path in (self.base,*self.base.rglob('*')):self.secure(path)
+        for item in (path,*path.rglob('*')):self.secure(item)
+        return actual
+
+    def adopt_legacy(self):
+        actual=self.legacy_inventory(self.base)
         assert_no_consumers([self.base])
         backup=safe(self.base.parent/'backups'/('legacy-'+sha(json.dumps(actual,sort_keys=True).encode())[:16]))
         if backup.exists():raise InstallRefused('旧工具备份位置已有材料')
@@ -343,9 +350,11 @@ class Installer:
         atomic_json(self.base/'current.json',previous)
         return previous
 
-    def removal_plan(self):
-        files={};roots=[safe(self.root/name.lstrip('/')) for name in MATERIAL_ROOTS]
-        allowed_directories=set(roots)
+    def verified_tool_files(self,allow_legacy=False):
+        files={}
+        if allow_legacy and self.base.exists() and not (self.base/'owner.json').exists():
+            names=self.legacy_inventory(self.base)
+            return {self.base/relative(name):self.file_identity(self.base/name) for name in names}
         if self.base.exists():
             self.current();self.known_base(refuse_staging=True)
         releases=self.base/'releases'
@@ -361,6 +370,11 @@ class Installer:
             for item in path.rglob('*'):self.secure(item)
         for path in self.base.rglob('*') if self.base.exists() else ():
             if path.is_file():files[path]=self.file_identity(path)
+        return files
+
+    def removal_plan(self):
+        files=self.verified_tool_files();roots=[safe(self.root/name.lstrip('/')) for name in MATERIAL_ROOTS]
+        allowed_directories=set(roots)
         for path in self.owned_libraries():files[path]=self.file_identity(path)
         value=self.catalog()
         directories=set()
