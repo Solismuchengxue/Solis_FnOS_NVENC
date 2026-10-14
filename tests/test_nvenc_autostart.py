@@ -41,6 +41,43 @@ class AutoTests(legacy.RuntimeTests):
         self.assertEqual(self.c.disable()['operation'],'RESTORED')
         self.assertEqual(self.host.loaded,'/official/libavcodec.so.62')
         self.assertFalse((self.root/AUTO_DROPIN.lstrip('/')).exists())
+    def test_complete_uninstall_removes_only_its_new_empty_startup_directory(self):
+        from nvenc_install import Installer
+        self.c.enable();self.c.disable()
+        Installer(self.root,required_uid=self.root.stat().st_uid).uninstall(lambda roots:None)
+        self.assertFalse((self.root/AUTO_DROPIN.lstrip('/')).parent.exists())
+        self.assertFalse((self.root/'run/solis-fnos-nvenc').exists())
+    def test_preexisting_startup_directory_is_preserved(self):
+        from nvenc_install import Installer
+        directory=(self.root/AUTO_DROPIN.lstrip('/')).parent;directory.mkdir(parents=True)
+        self.c.enable();self.c.disable()
+        Installer(self.root,required_uid=self.root.stat().st_uid).uninstall(lambda roots:None)
+        self.assertTrue(directory.is_dir());self.assertEqual(list(directory.iterdir()),[])
+    def test_foreign_file_in_created_startup_directory_blocks_complete_uninstall(self):
+        from nvenc_install import Installer,InstallRefused
+        self.c.enable();self.c.disable()
+        foreign=(self.root/AUTO_DROPIN.lstrip('/')).parent/'user.conf';foreign.write_text('keep')
+        with self.assertRaises(InstallRefused):Installer(self.root,required_uid=self.root.stat().st_uid).uninstall(lambda roots:None)
+        self.assertTrue((self.root/AUTO_STATE.lstrip('/')).is_file())
+        self.assertEqual(foreign.read_text(),'keep')
+    def test_failed_created_directory_registration_stops_cleanup_with_residue(self):
+        import io
+        from contextlib import redirect_stderr
+        from nvenc_install import Installer,InstallRefused
+        with redirect_stderr(io.StringIO()),patch('nvenc_install.Installer.directory_identity',side_effect=OSError('record failure')):
+            self.c.enable()
+        self.c.disable()
+        with self.assertRaises(InstallRefused):Installer(self.root,required_uid=self.root.stat().st_uid).uninstall(lambda roots:None)
+        self.assertTrue((self.root/AUTO_STATE.lstrip('/')).exists())
+        self.assertTrue((self.root/AUTO_DROPIN.lstrip('/')).parent.is_dir())
+    def test_bad_material_catalog_does_not_block_safe_startup_fallback(self):
+        import io
+        from contextlib import redirect_stderr
+        self.c.enable();self.host.driver='changed'
+        (self.root/'var/lib/solis-fnos-nvenc/library_ownership.json').write_text('[]')
+        with redirect_stderr(io.StringIO()):result=self.c.boot_prepare()
+        self.assertEqual(result['startup'],'SKIPPED')
+        self.assertEqual((self.root/ENV_FILE.lstrip('/')).read_bytes(),b'')
     def test_boot_drift_empties_injection_and_keeps_config(self):
         self.c.enable();self.host.driver='changed';self.host.boot='new-boot'
         result=self.c.boot_prepare()

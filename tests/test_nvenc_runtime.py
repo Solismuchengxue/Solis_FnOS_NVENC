@@ -82,6 +82,25 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(self.host.loaded,"/official/libavcodec.so.62")
         self.assertFalse((self.root/DROPIN.lstrip('/')).exists())
         self.assertEqual(self.state()["phase"],"restored_after_failure")
+    def test_legacy_deploy_and_rollback_leave_no_owned_residue_after_uninstall(self):
+        from nvenc_install import Installer
+        self.c.deploy();self.c.rollback()
+        Installer(self.root,required_uid=self.root.stat().st_uid).uninstall(lambda roots:None)
+        self.assertFalse((self.root/'opt/solis-fnos-nvenc').exists())
+        self.assertFalse((self.root/'var/lib/solis-fnos-nvenc').exists())
+        self.assertFalse((self.root/'run/systemd/system/mediasrv.service.d').exists())
+        self.assertEqual((self.root/'official/libavcodec.so.62').read_bytes(),b'official')
+    def test_cli_recovery_gate_checks_legacy_actual_service_and_current_boot(self):
+        from nvenc_cli import verify_tool_recovery
+        from nvenc_autostart import AutoController
+        self.c.deploy();self.c.rollback()
+        boot=self.root/'proc/sys/kernel/random/boot_id';boot.parent.mkdir(parents=True);boot.write_text(self.host.boot)
+        auto=AutoController(self.root,self.bundle,self.profile,self.host)
+        self.host.loaded='/different/libavcodec.so.62'
+        with self.assertRaises(Refused):verify_tool_recovery(auto)
+        self.host.loaded='/official/libavcodec.so.62';boot.write_text('another-boot')
+        with self.assertRaises(Refused):verify_tool_recovery(auto)
+        boot.write_text(self.host.boot);verify_tool_recovery(auto)
     def test_unknown_version_refused_without_mutation(self):
         self.host.driver="999.1"
         with self.assertRaises(Refused):self.c.deploy()

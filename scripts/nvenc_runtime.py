@@ -43,13 +43,18 @@ class Controller:
         except OSError as e: raise Refused("文件不可读："+absolute) from e
 
     def write(self, absolute, data):
-        p=self.path(absolute);p.parent.mkdir(parents=True,exist_ok=True)
+        p=self.path(absolute);created=not p.parent.exists();p.parent.mkdir(parents=True,exist_ok=True)
+        if created:
+            from nvenc_install import record_created_directory
+            record_created_directory(p.parent)
         self.path(absolute)
         scratch=p.with_name(p.name+".new")
         # A previous interrupted write is evidence, never silently overwrite it.
         with scratch.open('xb') as f:
             os.chmod(scratch,0o600);f.write(data);f.flush();os.fsync(f.fileno())
         os.replace(scratch,p)
+        from nvenc_install import record_generated
+        record_generated(p,parent_created=created)
 
     def read_state(self,allow_inactive_previous=False):
         p=self.path(STATE)
@@ -159,6 +164,8 @@ class Controller:
             os.chmod(lib,0o644)
         if self.identity(self.library)["sha256"]!=self.p["candidate_sha256"]:raise Refused("复制期间制品发生漂移；未切换服务")
         self.host.load_check(lib,self.p)
+        from nvenc_install import Installer
+        Installer(self.root,required_uid=self.root.stat().st_uid).record_library(self.library)
         content=("[Service]\nEnvironment=\"LD_LIBRARY_PATH="+str(Path(self.library).parent)+":"+self.p["official_dir"]+":/usr/trim/lib\"\n").encode()
         s={"schema":1,"profile":self.p["id"],"phase":"prepared","baseline":baseline,"dropin_sha256":sha(content),"library":self.library}
         if not self.p['nas_tool_verified']:s['trial_authorization_id']=self.trial['authorization_id']
@@ -199,7 +206,9 @@ class Controller:
             self.owned_dropin(s)
             retired=self.path(STATE).parent/("retired-"+s["dropin_sha256"]+".conf")
             if retired.exists() and retired.read_bytes()!=drop.read_bytes():raise Refused("退役证据冲突")
-            if not retired.exists():retired.write_bytes(drop.read_bytes());os.chmod(retired,0o600)
+            if not retired.exists():
+                from nvenc_install import atomic_bytes
+                atomic_bytes(retired,drop.read_bytes())
             drop.unlink()
         self.host.restart()
         service=self.host.service()

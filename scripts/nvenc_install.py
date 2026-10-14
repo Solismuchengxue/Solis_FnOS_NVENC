@@ -8,6 +8,16 @@ import re
 import shutil
 import stat
 import uuid
+import sys
+from contextlib import contextmanager
+
+CATALOG='/var/lib/solis-fnos-nvenc/library_ownership.json'
+MATERIAL_ROOTS=('/opt/solis-fnos-nvenc','/var/lib/solis-fnos-nvenc',
+                '/run/solis-fnos-nvenc','/vol1/1000/Solis_FnOS_NVENC/tmp')
+LEGACY_REQUIRED={'fnos-nvenc.sh':'40384f2100e232354b94ea1cf8330ad2ce5c4201478db6f1d83f2965466859a2',
+    'scripts/nvenc_runtime.py':'1250a7a648e9bc94709d250f11e11ee8b1447bdf3b70ff6356cb0762bd78f1cf',
+    'docs/runtime_profile.json':'7500837c57ce9117b746ab6c0f12fa5d18151d4cb38420cf981462f699f7b559',
+    'artifacts/runtime_bundle/libavcodec.so.62':'88e48674062ee5ef71864a2619324772bc856fec78c0d4793920fa7d4c15cd57'}
 
 class InstallRefused(RuntimeError):pass
 
@@ -40,8 +50,9 @@ def inventory(folder,files=None):
         data=path.read_bytes();result[name]={'sha256':sha(data),'bytes':len(data)}
     return result
 
-def atomic_bytes(path,data):
-    path=safe(path);path.parent.mkdir(parents=True,exist_ok=True)
+def _atomic_bytes(path,data):
+    path=safe(path);created=not path.parent.exists();path.parent.mkdir(parents=True,exist_ok=True)
+    if created:record_created_directory(path.parent)
     scratch=path.with_name(path.name+'.new-'+uuid.uuid4().hex)
     with scratch.open('xb') as stream:
         os.chmod(scratch,0o600);stream.write(data);stream.flush();os.fsync(stream.fileno())
@@ -49,6 +60,58 @@ def atomic_bytes(path,data):
     fd=os.open(path.parent,os.O_RDONLY|os.O_DIRECTORY)
     try:os.fsync(fd)
     finally:os.close(fd)
+    return created
+
+def generated_location(path):
+    text=safe(path).as_posix()
+    for marker in ('/var/lib/solis-fnos-nvenc/','/run/solis-fnos-nvenc/',
+                   '/etc/systemd/system/mediasrv.service.d/','/run/systemd/system/mediasrv.service.d/'):
+        index=text.find(marker)
+        if index<0:continue
+        name=text[index:]
+        if name in (CATALOG,'/var/lib/solis-fnos-nvenc/.ownership.lock'):return None
+        if marker=='/run/solis-fnos-nvenc/' and name!=marker+'mediasrv.env':return None
+        if marker.startswith('/etc/') and name!=marker+'96-solis-nvenc-autostart.conf':return None
+        if marker.startswith('/run/systemd/') and name!=marker+'95-solis-nvenc-managed.conf':return None
+        return Path(text[:index] or '/'),name
+    return None
+
+def atomic_bytes(path,data):
+    created=_atomic_bytes(path,data)
+    record_generated(path,parent_created=created)
+
+def record_generated(path,parent_created=False):
+    location=generated_location(path)
+    if not location:return
+    root,name=location;installer=Installer(root,required_uid=os.geteuid())
+    # A bookkeeping failure must not block the original safe startup/restore path.
+    # Missing or stale identities later block uninstall, rather than permit guesses.
+    try:
+        with installer.catalog_lock():
+            value=installer.catalog();identity=installer.file_identity(path)
+            if directory_location(Path(path).parent):
+                identity['parent_created']=bool(parent_created or value['generated'].get(name,{}).get('parent_created'))
+            value['generated'][name]=identity
+            installer.save_catalog(value)
+    except (InstallRefused,OSError,ValueError):
+        print('材料归属登记失败；请保留材料，完整卸载将停止核对。',file=sys.stderr)
+
+def directory_location(path):
+    text=safe(path).as_posix()
+    for name in ('/etc/systemd/system/mediasrv.service.d','/run/systemd/system/mediasrv.service.d'):
+        if text.endswith(name):return Path(text[:-len(name)] or '/'),name
+    return None
+
+def record_created_directory(path):
+    location=directory_location(path)
+    if not location:return
+    root,name=location;installer=Installer(root,required_uid=os.geteuid())
+    try:
+        with installer.catalog_lock():
+            value=installer.catalog();value['directories'][name]=installer.directory_identity(path)
+            installer.save_catalog(value)
+    except (InstallRefused,OSError,ValueError):
+        print('自建目录登记失败；请保留目录，核对后再清理。',file=sys.stderr)
 
 def atomic_json(path,value):
     atomic_bytes(path,(json.dumps(value,sort_keys=True,indent=2)+'\n').encode())
@@ -59,29 +122,93 @@ class Installer:
 
     def secure(self,path):
         path=safe(path)
+        temporary=self.root/'vol1/1000/Solis_FnOS_NVENC/tmp'
+        boundary=temporary if path==temporary or temporary in path.parents else self.root
         for item in (path,*path.parents):
             info=item.stat()
             if info.st_uid!=self.uid or stat.S_IMODE(info.st_mode)&0o022:
                 raise InstallRefused('安装材料所有权或写权限不符：'+str(item))
-            if item==self.root:break
+            if item==boundary:break
         return path
+
+    def directory_identity(self,path):
+        info=self.secure(path).stat()
+        if not stat.S_ISDIR(info.st_mode):raise InstallRefused('材料目录类型变化')
+        return {'uid':info.st_uid,'gid':info.st_gid,'mode':stat.S_IMODE(info.st_mode),'device':info.st_dev,'inode':info.st_ino}
+
+    def file_identity(self,path):
+        path=safe(path);info=path.stat()
+        if not stat.S_ISREG(info.st_mode):raise InstallRefused('材料不是普通文件：'+str(path))
+        return {'sha256':sha(path.read_bytes()),'bytes':info.st_size,'uid':info.st_uid,
+                'gid':info.st_gid,'mode':stat.S_IMODE(info.st_mode)}
+
+    @contextmanager
+    def catalog_lock(self):
+        import fcntl
+        folder=safe(self.root/'var/lib/solis-fnos-nvenc');folder.mkdir(mode=0o700,parents=True,exist_ok=True)
+        self.secure(folder);path=folder/'.ownership.lock'
+        fd=os.open(path,os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
+        with os.fdopen(fd,'rb') as stream:
+            info=os.fstat(stream.fileno())
+            if info.st_uid!=self.uid or stat.S_IMODE(info.st_mode)!=0o600 or info.st_size:
+                raise InstallRefused('材料清单锁身份不符')
+            try:fcntl.flock(stream,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            except BlockingIOError as error:raise InstallRefused('另一材料登记正在进行') from error
+            yield
+
+    def catalog(self):
+        path=safe(self.root/CATALOG.lstrip('/'))
+        value=json.loads(self.secure(path).read_text()) if path.exists() else {'schema':1,'project':'Solis_FnOS_NVENC','files':{}}
+        if not isinstance(value,dict) or value.get('schema')!=1 or value.get('project')!='Solis_FnOS_NVENC' or set(value)-{'schema','project','files','generated','trees','directories'}:
+            raise InstallRefused('材料归属清单未知')
+        for key in ('files','generated','trees','directories'):
+            value.setdefault(key,{})
+            if not isinstance(value[key],dict):raise InstallRefused('材料归属清单结构错误')
+        return value
+
+    def save_catalog(self,value):
+        _atomic_bytes(self.root/CATALOG.lstrip('/'),(json.dumps(value,sort_keys=True,indent=2)+'\n').encode())
+
+    def tree_name(self,path):
+        path=safe(path)
+        try:name='/'+path.relative_to(self.root).as_posix()
+        except ValueError as error:raise InstallRefused('材料目录越界') from error
+        if not re.fullmatch(r'/vol1/1000/Solis_FnOS_NVENC/tmp/install-input-[a-f0-9]{32}|/opt/solis-fnos-nvenc/backups/legacy-[a-f0-9]{16}',name):
+            raise InstallRefused('目录不属于安装器生成材料：'+name)
+        return name
+
+    def tree_inventory(self,path):
+        path=self.secure(path)
+        directories={}
+        for item in (path,*path.rglob('*')):
+            info=safe(item).stat()
+            if info.st_uid!=self.uid or stat.S_IMODE(info.st_mode)&0o022:
+                raise InstallRefused('生成材料权限或所有权变化：'+str(item))
+            if item.is_dir():directories[item.relative_to(path).as_posix()]={'uid':info.st_uid,'gid':info.st_gid,'mode':stat.S_IMODE(info.st_mode)}
+        names=inventory(path)
+        return {'files':{name:self.file_identity(path/relative(name)) for name in names},'directories':directories}
+
+    def record_tree(self,path):
+        name=self.tree_name(path);files=self.tree_inventory(path)
+        with self.catalog_lock():
+            value=self.catalog()
+            if name in value['trees'] and value['trees'][name]!=files:raise InstallRefused('生成材料已改动，拒绝重新登记')
+            value['trees'][name]=files;self.save_catalog(value)
 
     def record_library(self,absolute):
         if not re.fullmatch(r'/opt/solis-fnos-nvenc/managed/[a-f0-9]{64}/libavcodec\.so\.62',absolute):
             raise InstallRefused('库路径不属于安装器')
         path=self.secure(self.root/absolute.lstrip('/'));info=path.stat()
         identity={'sha256':sha(path.read_bytes()),'bytes':info.st_size,'mode':stat.S_IMODE(info.st_mode),'uid':info.st_uid,'gid':info.st_gid}
-        record=self.root/'var/lib/solis-fnos-nvenc/library_ownership.json'
-        value=json.loads(self.secure(record).read_text()) if record.exists() else {'schema':1,'project':'Solis_FnOS_NVENC','files':{}}
-        if value.get('schema')!=1 or value.get('project')!='Solis_FnOS_NVENC':raise InstallRefused('库所有权清单未知')
-        if absolute in value['files'] and value['files'][absolute]!=identity:raise InstallRefused('已记录的库身份漂移')
-        value['files'][absolute]=identity;atomic_json(record,value)
+        with self.catalog_lock():
+            value=self.catalog()
+            if absolute in value['files'] and value['files'][absolute]!=identity:raise InstallRefused('已记录的库身份漂移')
+            value['files'][absolute]=identity;self.save_catalog(value)
 
     def owned_libraries(self):
         record=self.root/'var/lib/solis-fnos-nvenc/library_ownership.json'
         if not record.exists():return []
-        value=json.loads(self.secure(record).read_text())
-        if value.get('schema')!=1 or value.get('project')!='Solis_FnOS_NVENC':raise InstallRefused('库所有权清单未知')
+        value=self.catalog()
         paths=[]
         for absolute,expected in value['files'].items():
             if not re.fullmatch(r'/opt/solis-fnos-nvenc/managed/[a-f0-9]{64}/libavcodec\.so\.62',absolute):raise InstallRefused('库清单路径越界')
@@ -127,20 +254,29 @@ class Installer:
         return value
 
     def adopt_legacy(self):
-        # Required identity gates; the entire old tree is retained, never removed.
-        required={'fnos-nvenc.sh':'40384f2100e232354b94ea1cf8330ad2ce5c4201478db6f1d83f2965466859a2',
-            'scripts/nvenc_runtime.py':'1250a7a648e9bc94709d250f11e11ee8b1447bdf3b70ff6356cb0762bd78f1cf',
-            'docs/runtime_profile.json':'7500837c57ce9117b746ab6c0f12fa5d18151d4cb38420cf981462f699f7b559',
-            'artifacts/runtime_bundle/libavcodec.so.62':'88e48674062ee5ef71864a2619324772bc856fec78c0d4793920fa7d4c15cd57'}
+        # Required identity gates; retain the old tree for rollback until uninstall.
+        required=LEGACY_REQUIRED
         actual=inventory(self.base)
         for name,expected in required.items():
             if actual.get(name,{}).get('sha256')!=expected:raise InstallRefused('已有工具身份未知，保留并停止')
+        allowed=set(required)|{'docs/quick_start.md','artifacts/runtime_bundle/identity.json'}
+        if set(actual)-allowed:raise InstallRefused('旧工具含未知材料，保留并停止')
+        directories={self.base}
+        for name in actual:
+            directories.update(p for p in (self.base/name).parents if p==self.base or self.base in p.parents)
+        if any(p.is_dir() and p not in directories for p in self.base.rglob('*')):
+            raise InstallRefused('旧工具含未知目录，保留并停止')
         for path in (self.base,*self.base.rglob('*')):self.secure(path)
         assert_no_consumers([self.base])
         backup=safe(self.base.parent/'backups'/('legacy-'+sha(json.dumps(actual,sort_keys=True).encode())[:16]))
         if backup.exists():raise InstallRefused('旧工具备份位置已有材料')
         backup.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
         os.rename(self.base,backup)
+        try:self.record_tree(backup)
+        except Exception:
+            if self.base.exists():raise InstallRefused('旧工具登记失败且原入口被占用；保留备份并停止')
+            os.rename(backup,self.base)
+            raise
         return backup
 
     def install(self,source,files,version,adopt=False,bootstrap=None):
@@ -207,10 +343,13 @@ class Installer:
         atomic_json(self.base/'current.json',previous)
         return previous
 
-    def uninstall(self,consumer_check):
-        self.current();self.known_base(refuse_staging=True)
+    def removal_plan(self):
+        files={};roots=[safe(self.root/name.lstrip('/')) for name in MATERIAL_ROOTS]
+        allowed_directories=set(roots)
+        if self.base.exists():
+            self.current();self.known_base(refuse_staging=True)
         releases=self.base/'releases'
-        for path in releases.iterdir():
+        for path in releases.iterdir() if releases.exists() else ():
             if not path.is_dir() or path.is_symlink():raise InstallRefused('版本目录身份未知')
             manifest=json.loads(self.secure(path/'manifest.json').read_text())
             if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+-[a-f0-9]{16}',path.name) or manifest['release']!=path.name:
@@ -220,19 +359,103 @@ class Installer:
             actual=inventory(path);actual.pop('manifest.json',None)
             if actual!=manifest['files']:raise InstallRefused('历史安装版本含漂移或未知材料')
             for item in path.rglob('*'):self.secure(item)
-        libraries=self.owned_libraries()
-        consumer_check([self.base,*(path.parent for path in libraries)])
-        for path in libraries:path.unlink();path.parent.rmdir()
-        # The caller also checks library consumers and disables the patch before here.
-        for path in sorted(self.base.rglob('*'),key=lambda p:len(p.parts),reverse=True):
-            safe(path)
-            if path.is_file():path.unlink()
-            elif path.is_dir():path.rmdir()
-            else:raise InstallRefused('卸载期间出现未知文件')
-        self.base.rmdir()
-        return {'operation':'TOOL_UNINSTALLED','recovery':'PRESERVED'}
+        for path in self.base.rglob('*') if self.base.exists() else ():
+            if path.is_file():files[path]=self.file_identity(path)
+        for path in self.owned_libraries():files[path]=self.file_identity(path)
+        value=self.catalog()
+        directories=set()
+        for name,expected in value['directories'].items():
+            path=safe(self.root/name.lstrip('/'))
+            if directory_location(path)!=(self.root,name):raise InstallRefused('自建目录清单越界')
+            if not path.exists():continue
+            if self.directory_identity(path)!=expected or any(path.iterdir()):raise InstallRefused('自建启动目录已变化或非空，保留并停止：'+name)
+            directories.add(path);roots.append(path)
+        for name,expected in value['generated'].items():
+            path=safe(self.root/name.lstrip('/'));location=generated_location(path)
+            if not location or location!=(self.root,name):raise InstallRefused('生成文件清单越界：'+name)
+            parent=directory_location(path.parent)
+            if parent and expected.get('parent_created') and path.parent.exists() and parent[1] not in value['directories']:
+                raise InstallRefused('自建启动目录缺少归属记录，保留并停止：'+parent[1])
+            if not path.exists():continue
+            self.secure(path)
+            if self.file_identity(path)!={k:v for k,v in expected.items() if k!='parent_created'}:raise InstallRefused('生成文件已改动：'+name)
+            if name.endswith(('96-solis-nvenc-autostart.conf','95-solis-nvenc-managed.conf')):
+                raise InstallRefused('补丁配置尚未撤销，先恢复')
+            if name=='/run/solis-fnos-nvenc/mediasrv.env' and path.read_bytes().strip():raise InstallRefused('注入环境尚未清空')
+            if name in ('/var/lib/solis-fnos-nvenc/autostart.json','/var/lib/solis-fnos-nvenc/state.json'):
+                state=json.loads(path.read_text())
+                if state.get('enabled') or state.get('phase') not in ('prepared','restored','restored_after_failure','aborted_before_switch'):
+                    raise InstallRefused('补丁未恢复或恢复未验证，保留状态')
+            files[path]=self.file_identity(path)
+        for name,expected in value['trees'].items():
+            path=safe(self.root/name.lstrip('/'))
+            if self.tree_name(path)!=name:raise InstallRefused('生成目录清单越界')
+            if not path.exists():continue
+            if self.tree_inventory(path)!=expected:raise InstallRefused('生成目录已改动：'+name)
+            for relative_name,identity in expected['files'].items():
+                file=safe(path/relative(relative_name));files[file]=identity
+            for name in expected['directories']:
+                allowed_directories.add(path if name=='.' else safe(path/relative(name)))
+        record=safe(self.root/CATALOG.lstrip('/'))
+        if record.exists():files[record]=self.file_identity(self.secure(record))
+        lock=safe(record.parent/'.ownership.lock')
+        if lock.exists():
+            info=self.file_identity(self.secure(lock))
+            if info['bytes'] or info['mode']!=0o600:raise InstallRefused('材料清单锁身份变化')
+            files[lock]=info
+        for path in files:
+            for parent in path.parents:
+                if any(parent==root or root in parent.parents for root in roots):allowed_directories.add(parent)
+        for root in roots:
+            if not root.exists():continue
+            self.secure(root);directories.add(root)
+            for path in root.rglob('*'):
+                self.secure(path)
+                if path.is_dir():
+                    if path not in allowed_directories:raise InstallRefused('未登记目录，保留并停止：'+str(path))
+                    directories.add(path)
+                elif not path.is_file() or path not in files:raise InstallRefused('卸载未完成，未登记残留：'+str(path))
+        return files,{path:self.directory_identity(path) for path in directories},roots
 
-def assert_no_consumers(roots):
+    def uninstall(self,consumer_check):
+        existed=self.base.exists();files,directories,roots=self.removal_plan()
+        consumer_check([*roots,*files])
+        temporary=self.root/'vol1/1000/Solis_FnOS_NVENC/tmp'
+        fd=os.open(temporary,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW) if temporary in directories else None
+        try:
+            if fd is not None:
+                opened=os.fstat(fd);expected=directories[temporary]
+                if (opened.st_dev,opened.st_ino)!=(expected['device'],expected['inode']):raise InstallRefused('暂存根在核对后被替换，停止卸载')
+            if self.removal_plan()[:2]!=(files,directories):raise InstallRefused('消费者核对期间材料变化，停止卸载')
+            # Anchor user-directory staging cleanup to the checked tmp inode.
+            # A rename of its user-owned parent cannot redirect file deletion.
+            for path in files:
+                if temporary in path.parents:self.retire_temporary(fd,path.relative_to(temporary))
+                else:path.unlink()
+            for path in sorted(directories,key=lambda p:len(p.parts),reverse=True):
+                if temporary in path.parents:self.retire_temporary(fd,path.relative_to(temporary),directory=True)
+                elif path==temporary:
+                    opened=os.fstat(fd);current=path.stat()
+                    if (opened.st_dev,opened.st_ino)!=(current.st_dev,current.st_ino):raise InstallRefused('暂存根身份变化，卸载未完成')
+                    path.rmdir()
+                else:path.rmdir()
+        finally:
+            if fd is not None:os.close(fd)
+        if any(path.exists() for path in roots) or any(path.exists() for path in files):raise InstallRefused('卸载后仍有残留，未完成')
+        return {'operation':'TOOL_UNINSTALLED' if existed else 'ALREADY_UNINSTALLED','remaining':[],
+                'source':'PRESERVED','recovery':'REMOVED_AFTER_RESTORE'}
+
+    @staticmethod
+    def retire_temporary(anchor,name,directory=False):
+        parent=os.dup(anchor)
+        try:
+            for part in name.parts[:-1]:
+                child=os.open(part,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=parent)
+                os.close(parent);parent=child
+            (os.rmdir if directory else os.unlink)(name.name,dir_fd=parent)
+        finally:os.close(parent)
+
+def assert_no_consumers(roots,own_fds=()):
     roots=[safe(p) for p in roots]
     def inside(value):return any(value==p or p in value.parents for p in roots)
     ancestors=set();pid=os.getpid()
@@ -250,6 +473,7 @@ def assert_no_consumers(roots):
                 if len(fields)==6 and fields[5].startswith('/') and inside(Path(fields[5].removesuffix(' (deleted)'))):
                     raise InstallRefused('材料仍有进程映射：'+process.name)
             for path in [process/'cwd',process/'exe',*(process/'fd').iterdir()]:
+                if int(process.name)==os.getpid() and path.parent==process/'fd' and path.name in {str(fd) for fd in own_fds}:continue
                 try:value=os.readlink(path)
                 except FileNotFoundError:continue
                 if value.startswith('/') and inside(Path(value.removesuffix(' (deleted)'))):

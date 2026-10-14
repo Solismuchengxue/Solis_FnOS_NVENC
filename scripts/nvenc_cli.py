@@ -116,6 +116,7 @@ def install_tool(bundle):
         with target.open('xb') as output:output.write(safe(bundle/name).read_bytes())
         os.chmod(target,0o600);files.append('bundle/'+name)
     runner=b'#!/bin/bash\nset -euo pipefail\nroot=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)\nexec /usr/bin/python3 -B "$root/bootstrap.py" "$@"\n'
+    Installer().record_tree(staging)
     result=Installer().install(staging,files,VERSION,adopt=True,bootstrap={'runner.sh':runner,'bootstrap.py':(source/'scripts/nvenc_bootstrap.py').read_bytes()})
     result['input_preserved']=str(staging)
     return result
@@ -177,6 +178,16 @@ def execute(args):
         with probe.lock():
             require_paused(probe)
             return Installer().restore_previous()
+    if args.action=='uninstall-tool':
+        # Repeat-uninstall must also work after the candidate is removed.
+        auto=AutoController(Path('/'),PROJECT/'bundle',profile,host)
+        with auto.lock():
+            require_paused(auto);host.hook_absent();verify_tool_recovery(auto)
+            check_runtime_locks(auto.root,auto.uid)
+            os.chdir('/')
+            result=Installer().uninstall(assert_no_consumers)
+        retire_runtime_locks(auto.root,auto.uid)
+        return result
     if args.action=='update-tool':
         from nvenc_install import InstallRefused
         installer=Installer()
@@ -252,12 +263,6 @@ def execute(args):
         if auto.owned_hook():raise Refused('持久补丁已配置，不混用临时 deploy')
         with auto.lock():return legacy_action(controller,'deploy')
     if args.action=='verify':return playback_receipt(auto,args.audio_confirmed)
-    if args.action=='uninstall-tool':
-        with auto.lock():
-            require_paused(auto);host.hook_absent()
-            os.chdir('/')
-            assert_no_consumers([Path('/opt/solis-fnos-nvenc/managed')])
-            return Installer().uninstall(assert_no_consumers)
     raise Refused('未知动作')
 
 def main():
@@ -281,6 +286,65 @@ def require_paused(auto):
     if auto.owned_hook() or Path('/run/systemd/system/mediasrv.service.d/95-solis-nvenc-managed.conf').exists():raise RuntimeError('先暂停或卸载补丁')
     if state and state['phase'] in ('switching','restoring','recovery_required'):raise RuntimeError('恢复事务未关闭，先完成恢复')
 
+def verify_tool_recovery(auto):
+    from nvenc_runtime import Refused
+    states=(auto.state(),auto.read_state())
+    for state in states:
+        if not state:continue
+        phase=state.get('phase')
+        if state.get('enabled') or phase not in ('prepared','restored','restored_after_failure','aborted_before_switch'):
+            raise Refused('恢复尚未验证，不能完整卸载')
+        baseline=state.get('baseline')
+        if not baseline:
+            if phase!='prepared':raise Refused('恢复基线缺失，保留材料')
+            continue
+        if phase=='prepared':raise Refused('请先完成当次恢复')
+        if auto.path('/proc/sys/kernel/random/boot_id').read_text().strip()!=baseline['boot']:raise Refused('恢复点不属于当前开机')
+        service=auto.host.service()
+        if not service['active'] or any(service.get(key)!=baseline.get(key) for key in ('loaded','environment','environment_sha256')) or set(service['dropins'])!=set(baseline['dropins']):
+            raise Refused('实际服务尚未恢复，保留恢复材料')
+        protected={**baseline.get('protected',{}),**baseline['dropins']}
+        if 'loaded_identity' in baseline:protected[baseline['loaded']]=baseline['loaded_identity']
+        for name,identity in protected.items():
+            if auto.identity(name)!=identity:raise Refused('恢复材料已变化，保留并停止')
+        for name,expected in baseline.get('dependencies',{}).get('identities',{}).items():
+            if auto.identity(name)['sha256']!=expected:raise Refused('恢复依赖已变化，保留并停止')
+
+def check_runtime_locks(root,uid):
+    from nvenc_install import safe,InstallRefused,assert_no_consumers
+    locks=[]
+    for name in ('solis-nvenc-installer.lock','solis-nvenc.lock'):
+        path=safe(Path(root)/'run/lock'/name)
+        if not path.exists():continue
+        info=path.stat()
+        if not path.is_file() or info.st_uid!=uid or info.st_mode&0o777!=0o600 or info.st_size:
+            raise InstallRefused('运行锁身份变化，保留并停止')
+        own=[]
+        for fd in Path('/proc/self/fd').iterdir():
+            try:
+                if os.readlink(fd)==str(path):own.append(int(fd.name))
+            except FileNotFoundError:continue
+        assert_no_consumers([path],own_fds=own);locks.append(path)
+    return locks
+
+def retire_runtime_locks(root,uid):
+    import fcntl
+    from contextlib import ExitStack
+    from nvenc_install import InstallRefused,assert_no_consumers
+    paths=check_runtime_locks(root,uid)
+    with ExitStack() as stack:
+        streams=[]
+        for path in paths:
+            stream=stack.enter_context(os.fdopen(os.open(path,os.O_RDWR|os.O_NOFOLLOW),'rb'))
+            try:fcntl.flock(stream,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            except BlockingIOError as error:raise InstallRefused('运行锁仍有消费者，卸载未完成') from error
+            streams.append(stream)
+        assert_no_consumers(paths,own_fds=[s.fileno() for s in streams])
+        for path,stream in zip(paths,streams):
+            current=path.stat();opened=os.fstat(stream.fileno())
+            if (current.st_dev,current.st_ino,current.st_size)!=(opened.st_dev,opened.st_ino,0):raise InstallRefused('运行锁核对期间身份变化')
+        for path in paths:path.unlink()
+
 def show(result,structured=False):
     if structured:
         print(json.dumps(result,ensure_ascii=False,indent=2));return
@@ -288,7 +352,8 @@ def show(result,structured=False):
     messages={'INSTALLED':'工具安装完成，上一版与恢复材料保留。','ALREADY_INSTALLED':'同一版本已安装，无需覆盖。',
               'AUTO_ENABLED':'补丁已接入，影视服务已重启；每次启动将重新检查。',
               'ALREADY_LOADED':'同一补丁已加载，无需再次重启。','RESTORED':'已核对并恢复当次开机基线。',
-              'ALREADY_INACTIVE':'当前没有本工具覆盖，无需切换。','TOOL_UNINSTALLED':'工具卸载完成；恢复记录与历史材料保留。',
+              'ALREADY_INACTIVE':'当前没有本工具覆盖，无需切换。','TOOL_UNINSTALLED':'工具及已登记安装材料已卸载，残留核对通过；源码与构建输入保留。',
+              'ALREADY_UNINSTALLED':'已无本工具安装残留；源码与构建输入保留。',
               'BOUNDED_PLAYBACK_RECORDED':'本次有限播放与实际 GPU 映射记录已保存。'}
     messages['CONFIG_DISABLED_NOT_RESTORED']='已撤销本工具启动注入；当前组件或开机变化，未重启，恢复结果尚未验证。请保留证据并联系维护者。'
     messages['TOOL_REPAIRED']='损坏版本已保留，工具指针已恢复到经核验的上一版。'
